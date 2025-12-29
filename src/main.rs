@@ -21,6 +21,7 @@
 mod application;
 mod config;
 mod puzzle;
+mod state;
 mod window;
 
 use self::application::PuzzleadayApplication;
@@ -54,4 +55,3 @@ fn main() -> glib::ExitCode {
     // terminal.
     app.run()
 }
-

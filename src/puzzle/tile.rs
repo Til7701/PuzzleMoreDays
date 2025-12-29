@@ -2,6 +2,7 @@ use crate::puzzle::util::{rotate_90, transform};
 use ndarray::Array2;
 use std::collections::HashSet;
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Tile {
     pub id: i32,
     pub base: Array2<bool>,

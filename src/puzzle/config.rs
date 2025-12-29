@@ -1,6 +1,9 @@
+use crate::puzzle::get_default_config;
 use crate::puzzle::tile::Tile;
 use ndarray::Array2;
+use std::fmt::Debug;
 
+#[derive(Debug, Clone)]
 pub struct PuzzleConfig {
     pub board_layout: Array2<bool>,
     pub meaning_areas: Array2<i32>,
@@ -21,5 +24,11 @@ impl PuzzleConfig {
             meaning_values,
             tiles,
         }
+    }
+}
+
+impl Default for PuzzleConfig {
+    fn default() -> Self {
+        get_default_config()
     }
 }

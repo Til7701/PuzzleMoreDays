@@ -20,17 +20,21 @@
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
-use gtk::{gio, glib, GestureDrag, PropagationPhase};
+use gtk::prelude::*;
+use gtk::{gio, glib, GestureDrag, PropagationPhase, Widget};
 
 use crate::config::VERSION;
-use crate::puzzle::PuzzleConfig;
+use crate::state::get_state;
 use crate::{puzzle, PuzzleadayWindow};
 
 mod imp {
     use super::*;
+    use std::cell::RefCell;
 
     #[derive(Debug, Default)]
-    pub struct PuzzleadayApplication {}
+    pub struct PuzzleadayApplication {
+        pub widgets_in_grid: RefCell<Vec<Widget>>,
+    }
 
     #[glib::object_subclass]
     impl ObjectSubclass for PuzzleadayApplication {
@@ -129,22 +133,30 @@ impl PuzzleadayApplication {
                 1 => puzzle::get_year_config(),
                 _ => panic!("Unknown puzzle selection index: {}", index),
             };
+            get_state().puzzle_config = puzzle_config;
 
             if let (Some(app), Some(window)) = (app_weak.upgrade(), window_weak.upgrade()) {
-                app.setup_puzzle_config(&window, puzzle_config);
+                app.setup_puzzle_config(&window);
             }
         });
+
+        self.setup_puzzle_config(window);
     }
 
-    fn setup_puzzle_config(&self, window: &PuzzleadayWindow, config: PuzzleConfig) {
+    fn setup_puzzle_config(&self, window: &PuzzleadayWindow) {
         let grid = window.grid();
         let drawing = window.drawing_area();
+        let mut widgets_in_grid = self.imp().widgets_in_grid.borrow_mut();
 
-        // TODO remove existing items from grid
+        widgets_in_grid
+            .iter()
+            .for_each(|widget: &Widget| grid.remove(widget));
+        widgets_in_grid.clear();
 
         const GRID_SIZE: i32 = 32;
         let item = gtk::Button::with_label("Drag me");
         grid.put(&item, 0.0, 0.0);
+        widgets_in_grid.push(item.clone().upcast());
 
         let drag = GestureDrag::new();
         drag.set_propagation_phase(PropagationPhase::Capture);
@@ -152,7 +164,6 @@ impl PuzzleadayApplication {
         let fixed_clone1 = grid.clone();
         let item_clone1 = item.clone();
         drag.connect_drag_update(move |_, dx, dy| {
-            println!("Drag update from {:?} to {:?}", dx, dy);
             let (x, y) = fixed_clone1.child_position(&item_clone1);
             let new_x = x + dx;
             let new_y = y + dy;
@@ -162,7 +173,6 @@ impl PuzzleadayApplication {
         let grid_clone2 = grid.clone();
         let item_clone2 = item.clone();
         drag.connect_drag_end(move |_, _, _| {
-            println!("Drag end done");
             let (x, y) = grid_clone2.child_position(&item_clone2);
             let snapped_x = (x as i32 / GRID_SIZE) * GRID_SIZE;
             let snapped_y = (y as i32 / GRID_SIZE) * GRID_SIZE;
