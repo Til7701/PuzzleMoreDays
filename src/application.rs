@@ -20,7 +20,7 @@
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
-use gtk::{gio, glib, GestureDrag};
+use gtk::{gio, glib, GestureDrag, PropagationPhase};
 
 use crate::config::VERSION;
 use crate::puzzle::PuzzleConfig;
@@ -146,32 +146,29 @@ impl PuzzleadayApplication {
         let item = gtk::Button::with_label("Drag me");
         grid.put(&item, 0.0, 0.0);
 
-        // create gesture, connect handlers, then add to widget (moved)
         let drag = GestureDrag::new();
+        drag.set_propagation_phase(PropagationPhase::Capture);
 
-        // clones for the drag update closure
         let fixed_clone1 = grid.clone();
         let item_clone1 = item.clone();
-
         drag.connect_drag_update(move |_, dx, dy| {
+            println!("Drag update from {:?} to {:?}", dx, dy);
             let (x, y) = fixed_clone1.child_position(&item_clone1);
             let new_x = x + dx;
             let new_y = y + dy;
             fixed_clone1.move_(&item_clone1, new_x, new_y);
         });
 
-        // clones for the drag end closure
         let grid_clone2 = grid.clone();
         let item_clone2 = item.clone();
-
         drag.connect_drag_end(move |_, _, _| {
+            println!("Drag end done");
             let (x, y) = grid_clone2.child_position(&item_clone2);
             let snapped_x = (x as i32 / GRID_SIZE) * GRID_SIZE;
             let snapped_y = (y as i32 / GRID_SIZE) * GRID_SIZE;
             grid_clone2.move_(&item_clone2, snapped_x as f64, snapped_y as f64);
         });
 
-        // move the gesture into the widget (no `&`)
         item.add_controller(drag);
 
         drawing.set_draw_func(move |_, cr, width, height| {
