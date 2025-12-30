@@ -31,6 +31,7 @@ use gtk::{
     gio, glib, CssProvider, Fixed, GestureDrag, PropagationPhase, Widget,
     STYLE_PROVIDER_PRIORITY_APPLICATION,
 };
+use std::cell::RefCell;
 
 pub const GRID_SIZE: i32 = 32;
 
@@ -199,34 +200,51 @@ impl PuzzleadayApplication {
 
     fn setup_tile(&self, grid: &Fixed, tile: &Tile, widgets_in_grid: &mut Vec<Widget>) {
         let tile_view = TileView::new(tile.id, tile.base.clone());
-        let widget = tile_view.parent.upcast::<Widget>();
-        grid.put(&widget, 0.0, 0.0);
+        tile_view.put(grid, 0.0, 0.0);
+        tile_view.move_to(grid, 0.0, 0.0);
         for draggable in tile_view.draggables.iter() {
-            self.setup_drag_and_drop(&widget, &draggable, grid);
+            self.setup_drag_and_drop(&tile_view, &draggable, grid);
         }
-        widgets_in_grid.push(widget);
+        tile_view
+            .elements_with_offset
+            .borrow()
+            .iter()
+            .map(|e| e.0.clone())
+            .for_each(|w| {
+                widgets_in_grid.push(w);
+            });
     }
 
-    fn setup_drag_and_drop(&self, widget: &Widget, draggable: &Widget, grid: &Fixed) {
+    fn setup_drag_and_drop(&self, tile_view: &TileView, draggable: &Widget, fixed: &Fixed) {
+        let widgets_with_offset = &tile_view.elements_with_offset;
+
         let drag = GestureDrag::new();
         drag.set_propagation_phase(PropagationPhase::Capture);
 
-        let fixed_clone1 = grid.clone();
-        let item_clone1 = widget.clone();
+        let fixed_clone1 = fixed.clone();
+        let widgets_with_offset_clone = widgets_with_offset.clone();
+        let tile_view_clone = tile_view.clone();
         drag.connect_drag_update(move |_, dx, dy| {
-            let (x, y) = fixed_clone1.child_position(&item_clone1);
+            let widgets_with_offset = widgets_with_offset_clone.borrow();
+            let item = widgets_with_offset.first().unwrap().clone();
+
+            let (x, y) = fixed_clone1.child_position(&item.0);
             let new_x = x + dx;
             let new_y = y + dy;
-            fixed_clone1.move_(&item_clone1, new_x, new_y);
+            tile_view_clone.move_to(&fixed_clone1, new_x, new_y);
         });
 
-        let grid_clone2 = grid.clone();
-        let item_clone2 = widget.clone();
+        let fixed_clone2 = fixed.clone();
+        let widgets_with_offset_clone = widgets_with_offset.clone();
+        let tile_view_clone = tile_view.clone();
         drag.connect_drag_end(move |_, _, _| {
-            let (x, y) = grid_clone2.child_position(&item_clone2);
+            let widgets_with_offset = widgets_with_offset_clone.borrow();
+            let item = widgets_with_offset.first().unwrap().clone();
+
+            let (x, y) = fixed_clone2.child_position(&item.0);
             let snapped_x = (x / GRID_SIZE as f64).round() * GRID_SIZE as f64;
             let snapped_y = (y / GRID_SIZE as f64).round() * GRID_SIZE as f64;
-            grid_clone2.move_(&item_clone2, snapped_x, snapped_y);
+            tile_view_clone.move_to(&fixed_clone2, snapped_x, snapped_y);
         });
 
         draggable.add_controller(drag);
