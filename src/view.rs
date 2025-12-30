@@ -1,6 +1,6 @@
-use crate::application::GRID_SIZE;
+use crate::state::get_state;
 use adw::gdk::BUTTON_SECONDARY;
-use adw::prelude::{Cast, ListModelExtManual};
+use adw::prelude::Cast;
 use gtk::gdk::BUTTON_MIDDLE;
 use gtk::prelude::{FixedExt, FrameExt, GestureSingleExt, GridExt, WidgetExt};
 use gtk::{EventController, Fixed, GestureClick, Grid, Widget};
@@ -8,12 +8,12 @@ use ndarray::Array2;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TileView {
     pub elements_with_offset: Rc<RefCell<Vec<(Widget, f64, f64)>>>,
     pub draggables: Vec<Widget>,
-    pub x: Rc<RefCell<f64>>,
-    pub y: Rc<RefCell<f64>>,
+    pub x_pixels: Rc<RefCell<f64>>,
+    pub y_pixels: Rc<RefCell<f64>>,
 }
 
 impl TileView {
@@ -25,6 +25,7 @@ impl TileView {
 
         let elements_with_offset: Rc<RefCell<Vec<(Widget, f64, f64)>>> = {
             let mut elements: Vec<(Widget, f64, f64)> = Vec::new();
+            let grid_size = get_state().grid_cell_width_pixel;
 
             for r in 0..rows {
                 for c in 0..cols {
@@ -32,8 +33,8 @@ impl TileView {
                         let cell = gtk::Frame::builder()
                             .css_classes(vec!["tile-cell", format!("tile-cell-{}", id).as_str()])
                             .build();
-                        cell.set_width_request(GRID_SIZE);
-                        cell.set_height_request(GRID_SIZE);
+                        cell.set_width_request(grid_size as i32);
+                        cell.set_height_request(grid_size as i32);
 
                         elements.push((cell.clone().upcast::<Widget>(), r as f64, c as f64));
                         draggables.push(cell.upcast::<Widget>());
@@ -44,16 +45,11 @@ impl TileView {
             Rc::new(RefCell::new(elements))
         };
 
-        for (_, x, y) in elements_with_offset.borrow().iter() {
-            println!("Initial Offset: ({}, {})", x, y);
-        }
-        println!();
-
         let tile_view = TileView {
             elements_with_offset,
             draggables,
-            x: Rc::new(RefCell::new(0.0)),
-            y: Rc::new(RefCell::new(0.0)),
+            x_pixels: Rc::new(RefCell::new(0.0)),
+            y_pixels: Rc::new(RefCell::new(0.0)),
         };
 
         for draggable in tile_view.draggables.iter() {
@@ -88,8 +84,8 @@ impl TileView {
                     .unwrap(),
                 &mut elements_with_offset_mut,
                 new_offsets,
-                *self_clone.x.borrow(),
-                *self_clone.y.borrow(),
+                *self_clone.x_pixels.borrow(),
+                *self_clone.y_pixels.borrow(),
             )
         });
 
@@ -120,8 +116,8 @@ impl TileView {
                     .unwrap(),
                 &mut elements_with_offset_mut,
                 new_offsets,
-                *self_clone.x.borrow(),
-                *self_clone.y.borrow(),
+                *self_clone.x_pixels.borrow(),
+                *self_clone.y_pixels.borrow(),
             )
         });
 
@@ -138,31 +134,34 @@ impl TileView {
         original_elements_with_offset.clear();
         original_elements_with_offset.extend(new_elements_with_offset.into_iter());
 
+        let grid_size = get_state().grid_cell_width_pixel;
         for (widget, r_offset, c_offset) in original_elements_with_offset.iter() {
             fixed.move_(
                 &widget.clone().upcast::<Widget>(),
-                x + (*r_offset * GRID_SIZE as f64),
-                y + (*c_offset * GRID_SIZE as f64),
+                x + (*r_offset * grid_size as f64),
+                y + (*c_offset * grid_size as f64),
             );
         }
     }
 
     pub fn put(&self, area: &Fixed, x: f64, y: f64) {
+        let grid_size = get_state().grid_cell_width_pixel;
         for (widget, r_offset, c_offset) in self.elements_with_offset.borrow().iter() {
-            let new_x = x + (r_offset * GRID_SIZE as f64);
-            let new_y = y + (c_offset * GRID_SIZE as f64);
+            let new_x = x + (r_offset * grid_size as f64);
+            let new_y = y + (c_offset * grid_size as f64);
             area.put(widget, new_x, new_y);
-            self.x.replace(new_x);
-            self.y.replace(new_y);
+            self.x_pixels.replace(new_x);
+            self.y_pixels.replace(new_y);
         }
     }
 
     pub fn move_to(&self, area: &Fixed, x: f64, y: f64) {
-        self.x.replace(x);
-        self.y.replace(y);
+        self.x_pixels.replace(x);
+        self.y_pixels.replace(y);
+        let grid_size = get_state().grid_cell_width_pixel;
         for (widget, r_offset, c_offset) in self.elements_with_offset.borrow().iter() {
-            let new_x = x + (r_offset * GRID_SIZE as f64);
-            let new_y = y + (c_offset * GRID_SIZE as f64);
+            let new_x = x + (r_offset * grid_size as f64);
+            let new_y = y + (c_offset * grid_size as f64);
             area.move_(widget, new_x, new_y);
         }
     }
@@ -188,8 +187,10 @@ impl TileView {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct BoardView {
     pub parent: Grid,
+    pub elements: Vec<Widget>,
 }
 
 impl BoardView {
@@ -202,14 +203,17 @@ impl BoardView {
         grid.set_row_homogeneous(true);
         grid.set_column_homogeneous(true);
 
+        let mut elements: Vec<Widget> = Vec::new();
+
         let (rows, cols) = board_layout.dim();
+        let grid_size = get_state().grid_cell_width_pixel;
 
         for r in 0..rows {
             for c in 0..cols {
                 if board_layout[[r, c]] {
                     let cell = gtk::Frame::new(None);
-                    cell.set_width_request(GRID_SIZE);
-                    cell.set_height_request(GRID_SIZE);
+                    cell.set_width_request(grid_size as i32);
+                    cell.set_height_request(grid_size as i32);
 
                     if meaning_areas[[r, c]] != -1 {
                         let label = gtk::Label::new(Some(&meaning_values[[r, c]].to_string()));
@@ -222,10 +226,14 @@ impl BoardView {
                     }
 
                     grid.attach(&cell, c as i32, r as i32, 1, 1);
+                    elements.push(cell.upcast::<Widget>());
                 }
             }
         }
 
-        BoardView { parent: grid }
+        BoardView {
+            parent: grid,
+            elements,
+        }
     }
 }

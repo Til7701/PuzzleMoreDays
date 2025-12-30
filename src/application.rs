@@ -35,16 +35,19 @@ use gtk::{
 };
 use std::cell::RefCell;
 
-pub const GRID_SIZE: i32 = 32;
+pub const WINDOW_TO_BOARD_RATIO: f64 = 2.5;
 
 mod imp {
     use super::*;
+    use crate::view::BoardView;
     use crate::window::PuzzlemoredaysWindow;
     use std::cell::RefCell;
 
     #[derive(Debug, Default)]
     pub struct PuzzlemoredaysApplication {
         pub widgets_in_grid: RefCell<Vec<Widget>>,
+        pub tile_views: RefCell<Vec<TileView>>,
+        pub board_view: RefCell<Option<BoardView>>,
     }
 
     #[glib::object_subclass]
@@ -168,11 +171,48 @@ impl PuzzlemoredaysApplication {
         });
 
         self.setup_puzzle_config(window);
+
+        let app_weak = self.downgrade();
+        window.connect_default_width_notify(move |w| {
+            if let Some(app) = app_weak.upgrade() {
+                app.on_window_resize(w);
+            }
+        });
+    }
+
+    fn on_window_resize(&self, window: &PuzzlemoredaysWindow) {
+        let width = window.width();
+        let cell_count_width = get_state().grid_h_cell_count;
+        let grid_size = width / cell_count_width as i32;
+        self.update_grid_cell_width_pixel(grid_size as u32);
+    }
+
+    fn update_grid_cell_width_pixel(&self, new_size: u32) {
+        get_state().grid_cell_width_pixel = new_size;
+        if let Some(window) = self.active_window() {
+            if let Some(puzzle_window) = window.downcast_ref::<PuzzlemoredaysWindow>() {
+                self.update_positions(puzzle_window);
+            }
+        }
+    }
+
+    fn update_positions(&self, window: &PuzzlemoredaysWindow) {
+        let grid = window.grid();
+        if let Some(board_view) = self.imp().board_view.borrow().as_ref() {
+            let widget = board_view.parent.clone().upcast::<Widget>();
+            let state = get_state();
+            let x = state.board_offset_x_cells as f64 * state.grid_cell_width_pixel as f64;
+            let y = 0.0;
+            grid.move_(&widget, x, y);
+            for widget in board_view.elements.iter() {
+                widget.set_width_request(state.grid_cell_width_pixel as i32);
+                widget.set_height_request(state.grid_cell_width_pixel as i32);
+            }
+        }
     }
 
     fn setup_puzzle_config(&self, window: &PuzzlemoredaysWindow) {
         let grid = window.grid();
-        let drawing = window.drawing_area();
         let mut widgets_in_grid = self.imp().widgets_in_grid.borrow_mut();
 
         widgets_in_grid
@@ -180,25 +220,16 @@ impl PuzzlemoredaysApplication {
             .for_each(|widget: &Widget| grid.remove(widget));
         widgets_in_grid.clear();
 
-        self.setup_board(&grid, &get_state().puzzle_config, &mut widgets_in_grid);
+        let puzzle_config = &get_state().puzzle_config.clone();
+        get_state().grid_h_cell_count =
+            (puzzle_config.board_layout.dim().1 as f64 * WINDOW_TO_BOARD_RATIO) as u32;
 
-        let puzzle_config = &get_state().puzzle_config;
+        self.setup_board(&grid, puzzle_config, &mut widgets_in_grid);
+
+        let puzzle_config = &get_state().puzzle_config.clone();
         for tile in &puzzle_config.tiles {
             self.setup_tile(&grid, tile, &mut widgets_in_grid);
         }
-
-        // drawing.set_draw_func(move |_, cr, width, height| {
-        //     cr.set_source_rgba(1.0, 1.0, 1.0, 0.1);
-        //     for x in (0..width).step_by(GRID_SIZE as usize) {
-        //         cr.move_to(x as f64, 0.0);
-        //         cr.line_to(x as f64, height as f64);
-        //     }
-        //     for y in (0..height).step_by(GRID_SIZE as usize) {
-        //         cr.move_to(0.0, y as f64);
-        //         cr.line_to(width as f64, y as f64);
-        //     }
-        //     cr.stroke().unwrap();
-        // });
     }
 
     fn setup_tile(&self, grid: &Fixed, tile: &Tile, widgets_in_grid: &mut Vec<Widget>) {
@@ -216,6 +247,7 @@ impl PuzzlemoredaysApplication {
             .for_each(|w| {
                 widgets_in_grid.push(w);
             });
+        self.imp().tile_views.borrow_mut().push(tile_view);
     }
 
     fn setup_drag_and_drop(&self, tile_view: &TileView, draggable: &Widget, fixed: &Fixed) {
@@ -226,7 +258,10 @@ impl PuzzlemoredaysApplication {
         let tile_view_clone = tile_view.clone();
         drag.connect_drag_update(move |_, dx, dy| {
             let (new_x, new_y) = {
-                let (x, y) = (*tile_view_clone.x.borrow(), *tile_view_clone.y.borrow());
+                let (x, y) = (
+                    *tile_view_clone.x_pixels.borrow(),
+                    *tile_view_clone.y_pixels.borrow(),
+                );
                 let new_x = x + dx;
                 let new_y = y + dy;
                 (new_x, new_y)
@@ -238,9 +273,13 @@ impl PuzzlemoredaysApplication {
         let tile_view_clone = tile_view.clone();
         drag.connect_drag_end(move |_, _, _| {
             let (snapped_x, snapped_y) = {
-                let (x, y) = (*tile_view_clone.x.borrow(), *tile_view_clone.y.borrow());
-                let snapped_x = (x / GRID_SIZE as f64).round() * GRID_SIZE as f64;
-                let snapped_y = (y / GRID_SIZE as f64).round() * GRID_SIZE as f64;
+                let (x, y) = (
+                    *tile_view_clone.x_pixels.borrow(),
+                    *tile_view_clone.y_pixels.borrow(),
+                );
+                let grid_size = get_state().grid_cell_width_pixel;
+                let snapped_x = (x / grid_size as f64).round() * grid_size as f64;
+                let snapped_y = (y / grid_size as f64).round() * grid_size as f64;
                 (snapped_x, snapped_y)
             };
             tile_view_clone.move_to(&fixed_clone2, snapped_x, snapped_y);
@@ -260,8 +299,12 @@ impl PuzzlemoredaysApplication {
             puzzle_config.meaning_areas.clone(),
             puzzle_config.meaning_values.clone(),
         );
-        let widget = board_view.parent.upcast::<Widget>();
-        grid.put(&widget, 0.0, 0.0);
+        let widget = board_view.parent.clone().upcast::<Widget>();
+        let state = get_state();
+        let x = state.board_offset_x_cells as f64 * state.grid_cell_width_pixel as f64;
+        let y = 0.0;
+        grid.put(&widget, x, y);
         widgets_in_grid.push(widget);
+        self.imp().board_view.replace(Some(board_view));
     }
 }
