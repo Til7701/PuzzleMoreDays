@@ -1,4 +1,5 @@
 target/
+build/
 src/config.rs
 
 .idea/

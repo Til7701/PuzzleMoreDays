@@ -1,3 +1,19 @@
 # Puzzle More Days
 
-A description of this project.
+A Libadwaita application to solve daily puzzles in various formats. In the future it may tell you, if you are on the right track
+or, whether it is impossible to solve the puzzle with your current approach.
+
+## Build and Run
+
+You need to have Rust and Cargo installed. Then you can build and run the application with Gnome Builder or from the
+command line (more dependencies may be required):
+
+```bash
+meson setup build
+meson compile -C build
+meson run -C build
+```
+
+## License
+
+This project is licensed under the GNU General Public License v3.0. See the COPYING file for details.
