@@ -3,6 +3,10 @@
     border-radius: 0;
 }
 
+.tile-cell-0 {
+    background-color: #ffffff;
+}
+
 .tile-cell-1 {
     background-color: #c16e1e;
 }

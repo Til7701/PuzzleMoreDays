@@ -34,7 +34,7 @@ impl PuzzleAreaData {
     pub fn add_to_fixed(&mut self, widget: &Widget, pos: &PixelOffset) {
         match &self.fixed {
             Some(fixed) => {
-                fixed.put(widget, pos.0, pos.1);
+                fixed.put(widget, pos.1, pos.0);
                 self.elements_in_fixed.push(widget.clone());
             }
             None => {}
@@ -129,7 +129,7 @@ impl PuzzleAreaPresenter {
 
         for tile_view in &data.tile_views {
             let tile_position = tile_view.position_cells.ok_or("Tile position not set")?;
-            let tile_position = tile_position - board_position;
+            let tile_position = tile_position - board_position + CellOffset(1, 1);
             for (element, offset) in &tile_view.elements_with_offset {
                 let element_position = tile_position + (*offset).into();
                 if element_position.0 >= 0
@@ -166,23 +166,30 @@ impl PuzzleAreaPresenter {
         self.clear_highlights();
         let puzzle_state = self.extract_puzzle_state();
         if let Ok(puzzle_state) = puzzle_state {
-            self.highlight_overlapping_tiles(&puzzle_state);
+            self.highlight_invalid_tile_parts(&puzzle_state);
         }
     }
 
-    pub fn highlight_overlapping_tiles(&self, puzzle_state: &PuzzleState) {
-        puzzle_state
-            .grid
-            .iter()
-            .flat_map(|cell| match cell {
-                Cell::Many(_, widgets) => Some(widgets.iter()),
-                _ => None,
-            })
-            .flatten()
-            .for_each(|widget| {
-                widget.set_opacity(0.5);
-                widget.add_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS);
-            });
+    fn highlight(&self, widget: &Widget) {
+        widget.set_opacity(0.5);
+        widget.add_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS);
+    }
+
+    fn clear_highlight(&self, widget: &Widget) {
+        widget.set_opacity(1.0);
+        widget.remove_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS);
+    }
+
+    pub fn highlight_invalid_tile_parts(&self, puzzle_state: &PuzzleState) {
+        puzzle_state.grid.iter().for_each(|cell| match cell {
+            Cell::One(data, widget) => {
+                if !data.allowed {
+                    self.highlight(widget);
+                }
+            }
+            Cell::Many(_, widgets) => widgets.iter().for_each(|w| self.highlight(w)),
+            _ => {}
+        });
     }
 
     pub fn clear_highlights(&self) {
@@ -190,10 +197,7 @@ impl PuzzleAreaPresenter {
             .borrow()
             .elements_in_fixed
             .iter()
-            .for_each(|element| {
-                element.set_opacity(1.0);
-                element.remove_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS)
-            });
+            .for_each(|element| self.clear_highlight(element));
     }
 }
 

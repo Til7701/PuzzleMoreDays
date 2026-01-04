@@ -94,7 +94,7 @@ impl TilePresenter {
                         }
                     };
                     let pos = tile_view.position_pixels;
-                    pos.add_tuple((dx, dy))
+                    pos.add_tuple((dy, dx))
                 };
                 self_clone.move_to(tile_view_index, new);
             }
@@ -234,9 +234,9 @@ impl TilePresenter {
                 let grid_size = data.grid_config.cell_width_pixel;
                 let tile_view = &mut data.tile_views[i];
 
-                for widget in tile_view.elements_with_offset.iter_mut() {
-                    widget.0.set_width_request(grid_size as i32);
-                    widget.0.set_height_request(grid_size as i32);
+                for (widget, _) in tile_view.elements_with_offset.iter() {
+                    widget.set_width_request(grid_size as i32);
+                    widget.set_height_request(grid_size as i32);
                 }
                 if let Some(position_cells) = tile_view.position_cells {
                     position_cells.mul_scalar(grid_size as f64).into()
@@ -262,7 +262,7 @@ impl TilePresenter {
         if let Some(tile_view) = data.tile_views.get_mut(tile_view_index) {
             for (widget, offset) in tile_view.elements_with_offset.iter() {
                 let new = pos_pixel + offset.mul_scalar(grid_size);
-                fixed.move_(widget, new.0, new.1);
+                fixed.move_(widget, new.1, new.0);
             }
             tile_view.position_pixels = pos_pixel;
         }

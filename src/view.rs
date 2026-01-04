@@ -15,40 +15,28 @@ pub struct TileView {
 impl TileView {
     pub fn new(id: i32, base: Array2<bool>) -> Self {
         let mut draggables: Vec<Widget> = Vec::new();
-        let (rows_usize, cols_usize) = base.dim();
-        let rows = rows_usize;
-        let cols = cols_usize;
+        let mut elements_with_offset: Vec<(Widget, PixelOffset)> = Vec::new();
 
-        let elements_with_offset: Vec<(Widget, PixelOffset)> = {
-            let mut elements: Vec<(Widget, PixelOffset)> = Vec::new();
+        for ((r, c), value) in base.indexed_iter() {
+            if *value {
+                let css_classes: Vec<String> =
+                    vec!["tile-cell".to_string(), format!("tile-cell-{}", id)];
+                let cell = Frame::builder().css_classes(css_classes).build();
 
-            for r in 0..rows {
-                for c in 0..cols {
-                    if base[[r, c]] {
-                        let css_classes: Vec<String> =
-                            vec!["tile-cell".to_string(), format!("tile-cell-{}", id)];
-                        let cell = Frame::builder().css_classes(css_classes).build();
-
-                        elements.push((
-                            cell.clone().upcast::<Widget>(),
-                            PixelOffset(r as f64, c as f64),
-                        ));
-                        draggables.push(cell.upcast::<Widget>());
-                    }
-                }
+                elements_with_offset.push((
+                    cell.clone().upcast::<Widget>(),
+                    PixelOffset(r as f64, c as f64),
+                ));
+                draggables.push(cell.upcast::<Widget>());
             }
+        }
 
-            elements
-        };
-
-        let tile_view = TileView {
+        TileView {
             elements_with_offset,
             draggables,
             position_pixels: PixelOffset::default(),
             position_cells: None,
-        };
-
-        tile_view
+        }
     }
 }
 
@@ -76,26 +64,23 @@ impl BoardView {
         grid.set_column_homogeneous(true);
 
         let mut elements: Vec<Widget> = Vec::new();
-        let (rows, cols) = board_layout.dim();
 
-        for r in 0..rows {
-            for c in 0..cols {
-                if board_layout[[r, c]] {
-                    let cell = Frame::new(None);
+        for ((r, c), value) in board_layout.indexed_iter() {
+            if *value {
+                let cell = Frame::new(None);
 
-                    if meaning_areas[[r, c]] != -1 {
-                        let label = Label::new(Some(&meaning_values[[r, c]].to_string()));
-                        cell.set_child(Some(&label));
-                    } else {
-                        return Err(format!(
-                            "Meaning area is -1 while board layout is true at position ({}, {})",
-                            r, c,
-                        ));
-                    }
-
-                    grid.attach(&cell, c as i32, r as i32, 1, 1);
-                    elements.push(cell.upcast::<Widget>());
+                if meaning_areas[[r, c]] != -1 {
+                    let label = Label::new(Some(&meaning_values[[r, c]].to_string()));
+                    cell.set_child(Some(&label));
+                } else {
+                    return Err(format!(
+                        "Meaning area is -1 while board layout is true at position ({}, {})",
+                        r, c,
+                    ));
                 }
+
+                grid.attach(&cell, c as i32, r as i32, 1, 1);
+                elements.push(cell.upcast::<Widget>());
             }
         }
 
