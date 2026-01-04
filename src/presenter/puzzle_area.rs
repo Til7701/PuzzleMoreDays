@@ -1,5 +1,6 @@
 use crate::offset::{CellOffset, PixelOffset};
 use crate::presenter::board::BoardPresenter;
+use crate::presenter::puzzle_area::HighlightMode::{OutOfBounds, Overlapping};
 use crate::presenter::tile::TilePresenter;
 use crate::puzzle_state::{Cell, PuzzleState};
 use crate::state::get_state;
@@ -12,6 +13,12 @@ use std::rc::Rc;
 
 pub const WINDOW_TO_BOARD_RATIO: f64 = 2.5;
 pub const OVERLAP_HIGHLIGHT_CSS_CLASS: &str = "overlap-highlight";
+pub const OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS: &str = "out-of-bounds-highlight";
+
+enum HighlightMode {
+    Overlapping,
+    OutOfBounds,
+}
 
 /// Configuration for the puzzle grid layout.
 #[derive(Debug, Default)]
@@ -170,24 +177,28 @@ impl PuzzleAreaPresenter {
         }
     }
 
-    fn highlight(&self, widget: &Widget) {
+    fn highlight(&self, mode: HighlightMode, widget: &Widget) {
         widget.set_opacity(0.5);
-        widget.add_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS);
+        widget.add_css_class(match mode {
+            Overlapping => OVERLAP_HIGHLIGHT_CSS_CLASS,
+            OutOfBounds => OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS,
+        });
     }
 
     fn clear_highlight(&self, widget: &Widget) {
         widget.set_opacity(1.0);
         widget.remove_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS);
+        widget.remove_css_class(OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS);
     }
 
     pub fn highlight_invalid_tile_parts(&self, puzzle_state: &PuzzleState) {
         puzzle_state.grid.iter().for_each(|cell| match cell {
             Cell::One(data, widget) => {
                 if !data.allowed {
-                    self.highlight(widget);
+                    self.highlight(OutOfBounds, widget);
                 }
             }
-            Cell::Many(_, widgets) => widgets.iter().for_each(|w| self.highlight(w)),
+            Cell::Many(_, widgets) => widgets.iter().for_each(|w| self.highlight(Overlapping, w)),
             _ => {}
         });
     }
