@@ -30,9 +30,9 @@ impl BoardPresenter {
         data.add_to_fixed(&widget, &PixelOffset::default());
 
         let grid_h_cell_count =
-            (puzzle_config.board_layout.dim().1 as f64 * WINDOW_TO_BOARD_RATIO) as u32;
+            (puzzle_config.board_layout.dim().0 as f64 * WINDOW_TO_BOARD_RATIO) as u32;
         let board_offset_horizontal_cells =
-            ((grid_h_cell_count - puzzle_config.board_layout.dim().1 as u32) / 2) as i32;
+            ((grid_h_cell_count - puzzle_config.board_layout.dim().0 as u32) / 2) as i32;
 
         let grid_config = &mut data.grid_config;
         grid_config.grid_h_cell_count = grid_h_cell_count;

@@ -22,7 +22,6 @@ use crate::puzzle;
 use crate::state::get_state;
 use crate::window::PuzzlemoredaysWindow;
 use adw::gdk::Display;
-use adw::glib::property::PropertyGet;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
@@ -162,6 +161,15 @@ impl PuzzlemoredaysApplication {
         });
 
         window.connect_default_width_notify({
+            let puzzle_area_presenter = self.imp().puzzle_area_presenter.clone();
+            move |_| puzzle_area_presenter.update_layout()
+        });
+        window.connect_is_active_notify({
+            let puzzle_area_presenter = self.imp().puzzle_area_presenter.clone();
+            move |_| puzzle_area_presenter.update_layout()
+        });
+        // Currently, this does not work, since the width is not updated yet when this signal is emitted.
+        window.connect_maximized_notify({
             let puzzle_area_presenter = self.imp().puzzle_area_presenter.clone();
             move |_| puzzle_area_presenter.update_layout()
         });

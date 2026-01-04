@@ -102,7 +102,7 @@ impl PuzzleAreaPresenter {
         let width = {
             let data = self.data.borrow();
             match &data.fixed {
-                Some(fixed) => fixed.width(),
+                Some(fixed) => fixed.parent().map(|w| w.width()).unwrap_or(0),
                 None => 0,
             }
         };
