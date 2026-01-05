@@ -38,8 +38,6 @@ impl BoardPresenter {
         let grid_config = &mut data.grid_config;
         grid_config.grid_h_cell_count = grid_h_cell_count;
         grid_config.board_offset_cells = CellOffset(board_offset_horizontal_cells, 1);
-        data.elements_in_fixed.push(widget.clone());
-        data.elements_in_fixed.push(widget);
         data.board_view = Some(board_view);
     }
 
