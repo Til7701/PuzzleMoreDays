@@ -4,6 +4,7 @@ pub mod tile;
 mod util;
 
 pub(crate) use crate::puzzle::config::PuzzleConfig;
+use crate::puzzle::config::SolutionStatistics;
 use crate::puzzle::util::transform;
 use ndarray::{arr2, Array2};
 use tile::Tile;
@@ -179,11 +180,19 @@ pub fn get_default_config() -> PuzzleConfig {
     let meaning_values = transform(&mut default_board_meaning_values());
     let meaning_display_values = transform(&mut default_board_display_values());
     PuzzleConfig::new(
+        "Default Puzzle".to_string(),
         board_layout,
         meaning_areas,
         meaning_values,
         meaning_display_values,
         tiles,
+        Some(SolutionStatistics {
+            min_per_meaning: 7,
+            max_per_meaning: 216,
+            average_per_meaning: 67.3682795698925,
+            mean_per_meaning: 40,
+            total_solutions: 25061,
+        }),
     )
 }
 
@@ -194,11 +203,19 @@ pub fn get_year_config() -> PuzzleConfig {
     let meaning_values = transform(&mut year_board_meaning_values());
     let meaning_display_values = transform(&mut year_board_meaning_display_values());
     PuzzleConfig::new(
+        "Year Puzzle".to_string(),
         board_layout,
         meaning_areas,
         meaning_values,
         meaning_display_values,
         tiles,
+        Some(SolutionStatistics {
+            min_per_meaning: 1292,
+            max_per_meaning: 469467,
+            average_per_meaning: 37393.1052150538,
+            mean_per_meaning: 103348,
+            total_solutions: 1391023514,
+        }),
     )
 }
 

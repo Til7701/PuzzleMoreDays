@@ -32,6 +32,12 @@ mod imp {
         pub grid: TemplateChild<gtk::Fixed>,
         #[template_child]
         pub puzzle_selection: TemplateChild<gtk::DropDown>,
+        #[template_child]
+        pub puzzle_info_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub target_selection_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub solver_status: TemplateChild<adw::Bin>,
     }
 
     #[glib::object_subclass]
@@ -74,5 +80,17 @@ impl PuzzlemoredaysWindow {
 
     pub fn puzzle_selection(&self) -> gtk::DropDown {
         self.imp().puzzle_selection.clone()
+    }
+
+    pub fn puzzle_info_button(&self) -> gtk::Button {
+        self.imp().puzzle_info_button.clone()
+    }
+
+    pub fn target_selection_button(&self) -> gtk::Button {
+        self.imp().target_selection_button.clone()
+    }
+
+    pub fn solver_status(&self) -> adw::Bin {
+        self.imp().solver_status.clone()
     }
 }

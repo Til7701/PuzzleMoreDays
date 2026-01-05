@@ -11,9 +11,9 @@ You need to have Rust and Cargo installed. Then you can build and run the applic
 or install it from the command line (more dependencies may be required):
 
 ```bash
-meson setup builddir
-meson compile -C builddir
-meson install -C builddir
+meson setup build
+meson compile -C build
+meson install -C build
 ```
 
 ## License

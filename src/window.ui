@@ -22,6 +22,26 @@
                                 </property>
                             </object>
                         </child>
+                        <child type="start">
+                            <object class="GtkButton" id="puzzle_info_button">
+                                <property name="icon-name">help-about-symbolic</property>
+                                <property name="tooltip-text" translatable="yes">Puzzle Information</property>
+                            </object>
+                        </child>
+                        <child type="start">
+                            <object class="GtkSeparator">
+                                <property name="orientation">vertical</property>>
+                            </object>
+                        </child>
+                        <child type="start">
+                            <object class="GtkButton" id="target_selection_button">
+                                <property name="label" translatable="yes">No Target Selected</property>
+                            </object>
+                        </child>
+                        <child type="start">
+                            <object class="AdwBin" id="solver_status">
+                            </object>
+                        </child>
                         <child type="end">
                             <object class="GtkMenuButton">
                                 <property name="primary">True</property>

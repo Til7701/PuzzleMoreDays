@@ -1,5 +1,9 @@
 use crate::offset::{CellOffset, PixelOffset};
-use adw::prelude::Cast;
+use crate::puzzle::PuzzleConfig;
+use adw::prelude::PreferencesGroupExt;
+use adw::prelude::PreferencesPageExt;
+use adw::prelude::{Cast, PreferencesDialogExt};
+use adw::{ActionRow, Dialog, PreferencesDialog, PreferencesGroup, PreferencesPage};
 use gtk::prelude::{FrameExt, GridExt};
 use gtk::{Frame, Grid, Label, Widget};
 use ndarray::Array2;
@@ -96,4 +100,90 @@ impl BoardView {
             elements,
         })
     }
+}
+
+pub fn create_puzzle_info(puzzle_config: &PuzzleConfig) -> Dialog {
+    let page = create_content_for_puzzle_info(puzzle_config);
+
+    let dialog = PreferencesDialog::builder()
+        .title("Puzzle Information")
+        .build();
+    dialog.add(&page);
+
+    dialog.upcast()
+}
+
+fn create_content_for_puzzle_info(puzzle_config: &PuzzleConfig) -> PreferencesPage {
+    let page = PreferencesPage::builder()
+        .title("Puzzle Information")
+        .build();
+
+    let general_group = PreferencesGroup::builder()
+        .title("General Information")
+        .build();
+
+    let name = create_row("Puzzle Name", &puzzle_config.name);
+    general_group.add(&name);
+
+    let board_dimensions = create_row(
+        "Board Dimensions",
+        &format!(
+            "{} x {}",
+            puzzle_config.board_layout.nrows(),
+            puzzle_config.board_layout.ncols()
+        ),
+    );
+    general_group.add(&board_dimensions);
+
+    let tile_count = create_row("Number of Tiles", &format!("{}", puzzle_config.tiles.len()));
+    general_group.add(&tile_count);
+
+    page.add(&general_group);
+
+    if let Some(stats) = &puzzle_config.solution_statistics {
+        let solution_statistics_group = PreferencesGroup::builder()
+            .title("Solution Statistics")
+            .build();
+        let min_per_meaning = create_row(
+            "Minimum Solutions per Day",
+            &format!("{}", stats.min_per_meaning),
+        );
+        solution_statistics_group.add(&min_per_meaning);
+
+        let max_per_meaning = create_row(
+            "Maximum Solutions per Day",
+            &format!("{}", stats.max_per_meaning),
+        );
+        solution_statistics_group.add(&max_per_meaning);
+
+        let average_per_meaning = create_row(
+            "Average Solutions per Day",
+            &format!("{:.2}", stats.average_per_meaning),
+        );
+        solution_statistics_group.add(&average_per_meaning);
+
+        let mean_per_meaning = create_row(
+            "Mean Solutions per Day",
+            &format!("{}", stats.mean_per_meaning),
+        );
+        solution_statistics_group.add(&mean_per_meaning);
+
+        let total_solutions = create_row("Total Solutions", &format!("{}", stats.total_solutions));
+        solution_statistics_group.add(&total_solutions);
+
+        page.add(&solution_statistics_group);
+    }
+
+    page
+}
+
+fn create_row(title: &str, value: &str) -> ActionRow {
+    ActionRow::builder()
+        .title(title)
+        .subtitle(value)
+        .focusable(false)
+        .selectable(false)
+        .can_focus(false)
+        .css_classes(vec!["property".to_string()])
+        .build()
 }
