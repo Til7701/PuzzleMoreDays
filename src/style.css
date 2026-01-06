@@ -86,3 +86,9 @@
 .board-cell-3 {
     background-color: #666666;
 }
+
+.target-selection {
+    border-style: solid;
+    border-width: 3px;
+    border-color: #FFFF00;
+}

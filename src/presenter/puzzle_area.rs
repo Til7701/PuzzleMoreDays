@@ -198,7 +198,8 @@ impl PuzzleAreaPresenter {
     }
 
     pub fn extract_puzzle_state(&self) -> Result<PuzzleState, String> {
-        let mut state = PuzzleState::new(&get_state().puzzle_config);
+        let state = get_state();
+        let mut state = PuzzleState::new(&state.puzzle_config, &state.target_selection);
         let data = self.data.borrow();
         let board_position = data.grid_config.board_offset_cells;
 

@@ -1,5 +1,6 @@
 use crate::offset::CellOffset;
 use crate::puzzle::PuzzleConfig;
+use crate::state::TargetSelection;
 use gtk::Widget;
 use ndarray::Array2;
 
@@ -29,7 +30,7 @@ pub struct PuzzleState {
 }
 
 impl PuzzleState {
-    pub fn new(puzzle_config: &PuzzleConfig) -> Self {
+    pub fn new(puzzle_config: &PuzzleConfig, target_selection: &Option<TargetSelection>) -> Self {
         let layout = &puzzle_config.board_layout;
 
         let dim = layout.dim();
@@ -39,14 +40,28 @@ impl PuzzleState {
 
         for ((r, c), cell) in grid.indexed_iter_mut() {
             let board_index: (i32, i32) = (r as i32 - 1, c as i32 - 1);
-            let allowed_on_board = *layout
+            let on_board = *layout
                 .get((board_index.0 as usize, board_index.1 as usize))
                 .unwrap_or(&false);
-            let allowed =
-                allowed_on_board || !Self::is_adjacent_to_allowed(board_index, puzzle_config);
+            let is_adjacent = !Self::is_adjacent_to_allowed(board_index, puzzle_config);
+            let allowed = on_board
+                && !is_adjacent
+                && !target_selection
+                    .iter()
+                    .flat_map(|target_selection| &target_selection.meaning_selections)
+                    .filter(|sel| {
+                        puzzle_config.meaning_areas
+                            [[board_index.0 as usize, board_index.1 as usize]]
+                            == sel.meaning_index
+                            && puzzle_config.meaning_values
+                                [[board_index.0 as usize, board_index.1 as usize]]
+                                == sel.selected_value
+                    })
+                    .any(|_| true);
+
             *cell = Cell::Empty(CellData {
                 position: CellOffset(r as i32, c as i32),
-                is_on_board: allowed_on_board,
+                is_on_board: on_board,
                 allowed,
             });
         }

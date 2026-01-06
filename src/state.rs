@@ -7,8 +7,19 @@ static APP_STATE: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::default())
 
 #[derive(Debug, Clone)]
 pub struct State {
-    pub current_puzzle_index: u32,
     pub puzzle_config: PuzzleConfig,
+    pub target_selection: Option<TargetSelection>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct TargetSelection {
+    pub meaning_selections: Vec<MeaningSelection>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct MeaningSelection {
+    pub meaning_index: i32,
+    pub selected_value: i32,
 }
 
 pub fn get_state() -> MutexGuard<'static, State> {
@@ -31,8 +42,8 @@ impl Default for State {
     fn default() -> Self {
         let puzzle_config = PuzzleConfig::default();
         State {
-            current_puzzle_index: 0,
             puzzle_config,
+            target_selection: None,
         }
     }
 }

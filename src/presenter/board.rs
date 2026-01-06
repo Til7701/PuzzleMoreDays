@@ -1,12 +1,15 @@
 use crate::offset::{CellOffset, PixelOffset};
 use crate::presenter::puzzle_area::{PuzzleAreaData, WINDOW_TO_BOARD_RATIO};
 use crate::puzzle::PuzzleConfig;
+use crate::state::{get_state, MeaningSelection};
 use crate::view::BoardView;
 use adw::prelude::Cast;
-use gtk::prelude::{FixedExt, WidgetExt};
+use gtk::prelude::{FixedExt, GridExt, WidgetExt};
 use gtk::Widget;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+const TARGET_SELECTION_CLASS: &str = "target-selection";
 
 #[derive(Debug, Default, Clone)]
 pub struct BoardPresenter {
@@ -42,6 +45,7 @@ impl BoardPresenter {
     }
 
     pub fn update_layout(&self) {
+        self.update_target_selection();
         let data = self.data.borrow();
         if let Some(board_view) = &data.board_view
             && let Some(fixed) = &data.fixed
@@ -56,6 +60,50 @@ impl BoardPresenter {
                 widget.set_width_request(grid_config.cell_width_pixel as i32);
                 widget.set_height_request(grid_config.cell_width_pixel as i32);
             }
+        }
+    }
+
+    fn update_target_selection(&self) {
+        self.clear_target_selection();
+        let state = get_state();
+        let target_selection = &state.target_selection;
+        let data = self.data.borrow();
+        match target_selection {
+            Some(selection) => {
+                let puzzle_config = &state.puzzle_config;
+                let puzzle_meaning_values = &puzzle_config.meaning_values;
+                let puzzle_meaning_areas = &puzzle_config.meaning_areas;
+                if let Some(board_view) = &data.board_view {
+                    selection.meaning_selections.iter().for_each(
+                        |MeaningSelection {
+                             meaning_index,
+                             selected_value,
+                         }| {
+                            for ((x, y), &area_index) in puzzle_meaning_areas.indexed_iter() {
+                                if area_index == *meaning_index {
+                                    if puzzle_meaning_values[[x, y]] == *selected_value {
+                                        if let Some(widget) =
+                                            board_view.parent.child_at(x as i32, y as i32)
+                                        {
+                                            widget.add_css_class(TARGET_SELECTION_CLASS);
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+            None => {}
+        }
+    }
+
+    fn clear_target_selection(&self) {
+        let data = self.data.borrow();
+        if let Some(board_view) = &data.board_view {
+            board_view.elements.iter().for_each(|widget| {
+                widget.remove_css_class(TARGET_SELECTION_CLASS);
+            });
         }
     }
 }

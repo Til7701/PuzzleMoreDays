@@ -1,7 +1,27 @@
 use crate::puzzle::get_default_config;
 use crate::puzzle::tile::Tile;
+use crate::state::TargetSelection;
 use ndarray::Array2;
 use std::fmt::Debug;
+
+pub trait TargetName: Debug + Send + Sync {
+    fn create_target_name(&self, selection: &TargetSelection) -> Result<String, String>;
+    fn box_clone(&self) -> Box<dyn TargetName>;
+}
+
+impl Clone for Box<dyn TargetName> {
+    fn clone(&self) -> Box<dyn TargetName> {
+        self.box_clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Meaning {
+    pub index: i32,
+    pub name: String,
+    pub min: i32,
+    pub max: i32,
+}
 
 #[derive(Debug, Clone)]
 pub struct SolutionStatistics {
@@ -21,6 +41,8 @@ pub struct PuzzleConfig {
     pub display_values: Array2<String>,
     pub tiles: Vec<Tile>,
     pub solution_statistics: Option<SolutionStatistics>,
+    pub meaning_options: Vec<Meaning>,
+    pub target_name: Box<dyn TargetName>,
 }
 
 impl PuzzleConfig {
@@ -32,6 +54,8 @@ impl PuzzleConfig {
         display_values: Array2<String>,
         tiles: Vec<Tile>,
         solution_statistics: Option<SolutionStatistics>,
+        meaning_options: Vec<Meaning>,
+        target_name: Box<dyn TargetName>,
     ) -> PuzzleConfig {
         PuzzleConfig {
             name,
@@ -41,6 +65,8 @@ impl PuzzleConfig {
             display_values,
             tiles,
             solution_statistics,
+            meaning_options,
+            target_name,
         }
     }
 

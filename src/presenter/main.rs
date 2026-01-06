@@ -1,7 +1,7 @@
 use crate::presenter::puzzle_area::PuzzleAreaPresenter;
 use crate::puzzle;
 use crate::state::get_state;
-use crate::view::create_puzzle_info;
+use crate::view::{create_puzzle_info, create_target_selection_dialog};
 use crate::window::PuzzlemoredaysWindow;
 use adw::prelude::AdwDialogExt;
 use gtk::prelude::ButtonExt;
@@ -37,7 +37,10 @@ impl MainPresenter {
                     1 => puzzle::get_year_config(),
                     _ => panic!("Unknown puzzle selection index: {}", index),
                 };
-                get_state().puzzle_config = puzzle_config;
+                let mut state = get_state();
+                state.puzzle_config = puzzle_config;
+                state.target_selection = None;
+                drop(state);
 
                 puzzle_area_presenter.setup_puzzle_config_from_state();
             }
@@ -48,6 +51,26 @@ impl MainPresenter {
             let main_presenter = self.clone();
             move |_| {
                 main_presenter.show_puzzle_info_dialog();
+            }
+        });
+
+        window.target_selection_button().connect_clicked({
+            let self_clone = self.clone();
+            move |_| {
+                if let Some(window) = self_clone.window.borrow().as_ref() {
+                    let dialog = create_target_selection_dialog();
+                    dialog.connect_closed({
+                        let self_clone = self_clone.clone();
+                        move |_| {
+                            self_clone.update_layout();
+                            self_clone
+                                .puzzle_area_presenter
+                                .borrow()
+                                .update_highlights();
+                        }
+                    });
+                    dialog.present(Some(window));
+                }
             }
         });
     }
@@ -64,5 +87,25 @@ impl MainPresenter {
 
     pub fn update_layout(&self) {
         self.puzzle_area_presenter.borrow().update_layout();
+        if let Some(window) = self.window.borrow().as_ref() {
+            let state = get_state();
+            let target_selection = &state.target_selection;
+            match target_selection {
+                Some(selection) => {
+                    let puzzle_config = &state.puzzle_config;
+                    let text = puzzle_config.target_name.create_target_name(selection);
+                    let text = match text {
+                        Ok(t) => t,
+                        Err(e) => format!("Error: {}", e),
+                    };
+                    window.target_selection_button().set_label(&text);
+                }
+                None => {
+                    window
+                        .target_selection_button()
+                        .set_label("Select Target Day");
+                }
+            }
+        }
     }
 }

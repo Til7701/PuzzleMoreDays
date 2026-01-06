@@ -1,11 +1,13 @@
 use crate::offset::{CellOffset, PixelOffset};
 use crate::puzzle::PuzzleConfig;
-use adw::prelude::PreferencesGroupExt;
-use adw::prelude::PreferencesPageExt;
+use crate::state::{get_state, MeaningSelection, TargetSelection};
+use adw::prelude::{AdwDialogExt, PreferencesGroupExt};
 use adw::prelude::{Cast, PreferencesDialogExt};
-use adw::{ActionRow, Dialog, PreferencesDialog, PreferencesGroup, PreferencesPage};
-use gtk::prelude::{FrameExt, GridExt};
-use gtk::{Frame, Grid, Label, Widget};
+use adw::prelude::{ComboRowExt, PreferencesPageExt};
+use adw::{ActionRow, ComboRow, Dialog, PreferencesDialog, PreferencesGroup, PreferencesPage};
+use gtk::prelude::{BoxExt, ButtonExt, FrameExt, GridExt};
+use gtk::Orientation::{Horizontal, Vertical};
+use gtk::{Button, Frame, Grid, Label, StringList, Widget};
 use ndarray::Array2;
 
 #[derive(Debug, Clone)]
@@ -186,4 +188,105 @@ fn create_row(title: &str, value: &str) -> ActionRow {
         .can_focus(false)
         .css_classes(vec!["property".to_string()])
         .build()
+}
+
+pub fn create_target_selection_dialog() -> Dialog {
+    let dialog = Dialog::builder().title("Select Target Day").build();
+
+    let content = PreferencesGroup::builder()
+        .title("Select Target Day")
+        .build();
+
+    let state = get_state();
+    let puzzle_config = &state.puzzle_config;
+    let current_selection = &state.target_selection;
+    let meaning_options = &puzzle_config.meaning_options;
+    let mut dropdowns: Vec<ComboRow> = Vec::new();
+    for meaning in meaning_options {
+        let mut items: Vec<String> = Vec::new();
+        for value in meaning.min..=meaning.max {
+            items.push(value.to_string());
+        }
+        let item_slices: Vec<&str> = items.iter().map(String::as_str).collect();
+        let model = StringList::new(&item_slices);
+
+        let meaning = meaning.clone();
+        let current_index: u32 = current_selection
+            .as_ref()
+            .map(|target_selection| {
+                target_selection.meaning_selections[meaning.index as usize].selected_value
+                    - meaning.min
+            })
+            .unwrap_or(0) as u32;
+        let dropdown = ComboRow::builder()
+            .title(&meaning.name)
+            .model(&model)
+            .selected(current_index)
+            .build();
+        content.add(&dropdown);
+        dropdowns.push(dropdown);
+    }
+    let dropdowns = dropdowns;
+
+    let accept_button = Button::builder()
+        .label("Accept")
+        .css_classes(vec!["suggested-action".to_string()])
+        .build();
+    accept_button.connect_clicked({
+        let dialog = dialog.clone();
+        let dropdowns = dropdowns.clone();
+        let puzzle_config = puzzle_config.clone();
+        move |_| {
+            let mut selected_values: Vec<MeaningSelection> = Vec::new();
+            for (i, dropdown) in dropdowns.iter().enumerate() {
+                let selected = dropdown.selected();
+                selected_values.push(MeaningSelection {
+                    meaning_index: i as i32,
+                    selected_value: selected as i32 + puzzle_config.meaning_options[i].min,
+                });
+            }
+            let mut state = get_state();
+            state.target_selection = Some(TargetSelection {
+                meaning_selections: selected_values,
+            });
+            drop(state);
+            dialog.close();
+        }
+    });
+    let cancel_button = Button::builder().label("Cancel").build();
+    cancel_button.connect_clicked({
+        let dialog = dialog.clone();
+        move |_| {
+            dialog.close();
+        }
+    });
+    let clear_button = Button::builder()
+        .css_classes(vec!["destructive-action".to_string()])
+        .label("Clear")
+        .build();
+    clear_button.connect_clicked({
+        let dialog = dialog.clone();
+        move |_| {
+            let mut state = get_state();
+            state.target_selection = None;
+            drop(state);
+            dialog.close();
+        }
+    });
+
+    let box_buttons = gtk::Box::builder()
+        .orientation(Horizontal)
+        .spacing(5)
+        .build();
+    box_buttons.append(&accept_button);
+    box_buttons.append(&cancel_button);
+    box_buttons.append(&clear_button);
+
+    let box_content = gtk::Box::builder().orientation(Vertical).spacing(2).build();
+    box_content.append(&content);
+    box_content.append(&box_buttons);
+
+    drop(state);
+    dialog.set_child(Some(&box_content));
+    dialog.upcast()
 }
