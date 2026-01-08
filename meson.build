@@ -12,6 +12,19 @@ gnome = import('gnome')
 
 subdir('data')
 subdir('puzzlemoredays/src')
+
+cargo_bin  = find_program('cargo')
+cargo_opt  = [ '--manifest-path', meson.project_source_root() / 'Cargo.toml' ]
+cargo_opt += [ '--target-dir', meson.project_build_root() / 'puzzlemoredays' / 'src' ]
+cargo_env  = [ 'CARGO_HOME=' + meson.project_build_root() / 'puzzlemoredays' / 'cargo-home' ]
+
+test('cargo-test',
+  cargo_bin,
+  args: [ 'test' ] + cargo_opt,
+  env: cargo_env,
+  timeout: 600000,
+)
+
 subdir('po')
 
 gnome.post_install(
