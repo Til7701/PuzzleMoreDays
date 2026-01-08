@@ -72,6 +72,8 @@ mod imp {
             );
 
             window.present();
+
+            dbg!(puzzle_solver::add(1, 2));
         }
     }
 

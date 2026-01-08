@@ -11,7 +11,7 @@ gnome = import('gnome')
 
 
 subdir('data')
-subdir('src')
+subdir('puzzlemoredays/src')
 subdir('po')
 
 gnome.post_install(
