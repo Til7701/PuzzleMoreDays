@@ -27,3 +27,37 @@ run_command(
   meson.project_source_root() / 'puzzlemoredays' / 'src' / 'config.rs',
   check: true
 )
+
+cargo_bin  = find_program('cargo')
+cargo_opt  = [ '--manifest-path', meson.project_source_root() / 'Cargo.toml', '--package', 'puzzlemoredays' ]
+cargo_opt += [ '--target-dir', meson.project_build_root() / 'puzzlemoredays' / 'src' ]
+cargo_env  = [ 'CARGO_HOME=' + meson.project_build_root() / 'puzzlemoredays' / 'cargo-home' ]
+
+test('cargo-test',
+  cargo_bin,
+  args: [ 'test' ] + cargo_opt,
+  env: cargo_env,
+  timeout: 600000,
+)
+
+if get_option('buildtype') == 'release'
+  cargo_opt += [ '--release' ]
+  rust_target = 'release'
+else
+  rust_target = 'debug'
+endif
+
+cargo_build = custom_target(
+  'cargo-build',
+  build_by_default: true,
+  build_always_stale: true,
+  output: meson.project_name(),
+  console: true,
+  install: true,
+  install_dir: get_option('bindir'),
+  command: [
+    'env', cargo_env,
+    cargo_bin, 'build',
+    cargo_opt, '&&', 'cp', 'puzzlemoredays' / 'src' / rust_target / meson.project_name(), '@OUTPUT@',
+  ]
+)
