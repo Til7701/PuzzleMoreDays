@@ -51,14 +51,13 @@ impl PuzzleState {
             let on_board = *layout
                 .get((board_index.0 as usize, board_index.1 as usize))
                 .unwrap_or(&false);
-            let is_adjacent = !Self::is_adjacent_to_allowed(board_index, puzzle_config);
-            let allowed = on_board
-                && !is_adjacent
-                && !target_selection
+            let is_adjacent = Self::is_adjacent_to_board(board_index, puzzle_config);
+            let allowed = !(is_adjacent
+                || target_selection
                     .iter()
                     .flat_map(|target_selection| &target_selection.indices)
                     .filter(|target_index| **target_index == board_index)
-                    .any(|_| true);
+                    .any(|_| true));
             *cell = Cell::Empty(CellData {
                 position: CellOffset(x as i32, y as i32),
                 is_on_board: on_board,
@@ -72,16 +71,21 @@ impl PuzzleState {
         }
     }
 
-    fn is_adjacent_to_allowed(position: (i32, i32), puzzle_config: &PuzzleConfig) -> bool {
+    fn is_adjacent_to_board(position: (i32, i32), puzzle_config: &PuzzleConfig) -> bool {
         const DELTAS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+        let this_is_on_board = puzzle_config
+            .board_config
+            .layout
+            .get::<(usize, usize)>((position.0 as usize, position.1 as usize).into())
+            .unwrap_or(&false);
         for (dr, dc) in DELTAS.iter() {
             let neighbor_pos = ((position.0 + dr) as usize, (position.1 + dc) as usize);
-            if let Some(allowed) = puzzle_config
+            if let Some(neighbour_on_board) = puzzle_config
                 .board_config
                 .layout
                 .get::<(usize, usize)>(neighbor_pos.into())
             {
-                if *allowed {
+                if !this_is_on_board && *neighbour_on_board {
                     return true;
                 }
             }
