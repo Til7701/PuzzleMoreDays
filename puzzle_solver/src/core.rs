@@ -4,6 +4,7 @@ use crate::board::Board;
 use crate::tile::Tile;
 use log::debug;
 use ndarray::Array2;
+use std::sync::Arc;
 use tokio::runtime::Runtime;
 use tokio::task::JoinSet;
 
@@ -26,11 +27,6 @@ impl PositionedTile {
             })
             .collect();
 
-        all_placements.iter().for_each(|placement| {
-            array_util::debug_print(placement);
-            debug!("");
-        });
-
         let bitmasks: Vec<Bitmask> = all_placements
             .iter()
             .map(|array| Bitmask::from(array))
@@ -50,7 +46,7 @@ impl PositionedTile {
     }
 }
 
-pub fn solve_filling(
+pub async fn solve_filling(
     board_width: i32,
     board_bitmask: &Bitmask,
     positioned_tiles: &[PositionedTile],
@@ -58,15 +54,12 @@ pub fn solve_filling(
     let solvers: Vec<RecursiveSolver> =
         prepare_solvers(board_width, board_bitmask, positioned_tiles);
     let mut set: JoinSet<bool> = JoinSet::new();
-    debug!("Solvers prepared: {}", solvers.len());
 
     let result: Option<Vec<usize>> = {
-        Runtime::new().unwrap().block_on(async {
-            for mut solver in solvers.into_iter() {
-                set.spawn(async move { solver.solve().await });
-            }
-            block_until_complete(&mut set).await
-        })
+        for mut solver in solvers.into_iter() {
+            set.spawn(async move { solver.solve().await });
+        }
+        block_until_complete(&mut set).await
     };
 
     result
@@ -96,15 +89,9 @@ fn prepare_solvers(
 ) -> Vec<RecursiveSolver> {
     let first_tile = positioned_tiles.first().unwrap();
     let mut solvers = Vec::with_capacity(first_tile.bitmasks.len());
-    debug!("Board Width: {}", board_width);
-    debug!("Board Bitmask: {}", board_bitmask.to_string(board_width));
-    debug!("First Tile: ");
-    first_tile.print_debug(board_width);
 
     for i in 0..first_tile.bitmasks.len() {
         let placement = &first_tile.bitmasks[i];
-        debug!("Preparing solver with first tile placement index {}:", i);
-        debug!("{}", placement.to_string(board_width));
         if board_bitmask.and_is_zero(&placement) {
             let mut board_with_placements = board_bitmask.clone();
             board_with_placements.xor(board_bitmask, placement);
@@ -189,7 +176,6 @@ impl RecursiveSolver {
 
     fn submit_solution(&self) -> bool {
         debug!("Submitting solution...");
-        self.print_debug();
         let board_filled = self.board_bitmasks.last().unwrap().all_relevant_bits_set();
         board_filled
     }

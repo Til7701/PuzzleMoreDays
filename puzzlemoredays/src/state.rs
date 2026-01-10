@@ -4,14 +4,18 @@ use crate::solver::SolverCallId;
 use once_cell::sync::Lazy;
 use std::backtrace::Backtrace;
 use std::sync::{Mutex, MutexGuard, TryLockError};
+use tokio::runtime::Runtime;
 
 static APP_STATE: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::default()));
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct State {
     pub puzzle_config: PuzzleConfig,
     pub target_selection: Option<Target>,
     pub solver_status: SolverStatus,
+    pub solver_call_id: Option<SolverCallId>,
+    pub solver_task_handle: Option<tokio::task::AbortHandle>,
+    pub runtime: Option<Runtime>,
 }
 
 pub fn get_state() -> MutexGuard<'static, State> {
@@ -21,9 +25,9 @@ pub fn get_state() -> MutexGuard<'static, State> {
             eprintln!(
                 "get_state: mutex busy (possible deadlock). PID={} Backtrace:\n{:?}",
                 std::process::id(),
-                Backtrace::capture()
+                Backtrace::force_capture()
             );
-            std::thread::sleep(std::time::Duration::from_secs(2));
+            std::thread::sleep(std::time::Duration::from_secs(1));
             APP_STATE.lock().unwrap()
         }
         Err(TryLockError::Poisoned(_)) => APP_STATE.lock().unwrap(),
@@ -38,6 +42,9 @@ impl Default for State {
             puzzle_config,
             target_selection: default_target,
             solver_status: SolverStatus::Disabled,
+            solver_call_id: None,
+            solver_task_handle: None,
+            runtime: None,
         }
     }
 }

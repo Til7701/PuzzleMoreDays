@@ -142,7 +142,7 @@ impl MainPresenter {
 
         let solver_status = &state.solver_status;
         match solver_status {
-            SolverStatus::Running { call_id } => interrupt_solver_call(&call_id),
+            SolverStatus::Running { call_id } => interrupt_solver_call(&call_id, &state),
             _ => {}
         }
         drop(state);
@@ -169,6 +169,7 @@ impl MainPresenter {
             call_id: call_id.clone(),
         };
         self.set_solver_status(&state.solver_status);
+        drop(state);
         solver::solve_for_target(
             &call_id,
             &puzzle_state,

@@ -827,6 +827,7 @@ dependencies = [
  "puzzle_solver",
  "simple_logger",
  "time",
+ "tokio",
 ]
 
 [[package]]
