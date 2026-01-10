@@ -7,13 +7,14 @@ use puzzle_solver::tile::Tile;
 use std::cmp::PartialEq;
 use std::sync::atomic::{AtomicU64, Ordering};
 use tokio::{runtime, task};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SolverCallId(u64);
 
 pub type OnCompleteCallback = Box<dyn FnOnce(SolverStatus) + Send>;
 
-const SOLVER_CALL_ID_ATOMIC_COUNTER: AtomicU64 = AtomicU64::new(0);
+static SOLVER_CALL_ID_ATOMIC_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 pub fn create_solver_call_id() -> SolverCallId {
     SolverCallId(SOLVER_CALL_ID_ATOMIC_COUNTER.fetch_add(1, Ordering::SeqCst))
@@ -26,6 +27,7 @@ pub fn solve_for_target(
     on_complete: OnCompleteCallback,
 ) {
     init_runtime_if_needed();
+    let cancel_token = CancellationToken::new();
     let board = create_board(puzzle_state, target);
     let tiles: Vec<Tile> = puzzle_state
         .unused_tiles
@@ -34,15 +36,16 @@ pub fn solve_for_target(
         .collect();
     let mut state = get_state();
     state.solver_call_id = Some(solver_call_id.clone());
+    state.solver_cancel_token = Some(cancel_token.clone());
     let runtime = state.runtime.as_ref().unwrap();
-    let handle = runtime.spawn({
+    runtime.spawn({
         let solver_call_id = solver_call_id.clone();
+        let cancel_token = cancel_token.clone();
         async move {
-            let result = puzzle_solver::solve_all_filling(board, &tiles).await;
+            let result = puzzle_solver::solve_all_filling(board, &tiles, cancel_token).await;
             handle_on_complete(solver_call_id, result.is_ok(), on_complete);
         }
     });
-    state.solver_task_handle = Some(handle.abort_handle());
     drop(state);
 }
 
@@ -70,8 +73,8 @@ fn handle_on_complete(
 pub fn interrupt_solver_call(call_id: &SolverCallId, state: &State) {
     debug!("Interrupting solver call: {:?}", call_id);
     if state.solver_call_id == Some(call_id.clone()) {
-        if let Some(handle) = &state.solver_task_handle {
-            handle.abort();
+        if let Some(cancel_token) = &state.solver_cancel_token {
+            cancel_token.cancel();
             debug!("Solver call {:?} aborted.", call_id);
         }
     }

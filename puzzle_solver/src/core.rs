@@ -4,9 +4,8 @@ use crate::board::Board;
 use crate::tile::Tile;
 use log::debug;
 use ndarray::Array2;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
-use tokio::task::JoinSet;
+use tokio::task::{JoinHandle, JoinSet};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Clone)]
 pub struct PositionedTile {
@@ -50,6 +49,7 @@ pub async fn solve_filling(
     board_width: i32,
     board_bitmask: &Bitmask,
     positioned_tiles: &[PositionedTile],
+    cancel_token: CancellationToken,
 ) -> Option<Vec<usize>> {
     let solvers: Vec<RecursiveSolver> =
         prepare_solvers(board_width, board_bitmask, positioned_tiles);
@@ -59,9 +59,18 @@ pub async fn solve_filling(
         for mut solver in solvers.into_iter() {
             set.spawn(async move { solver.solve().await });
         }
-        block_until_complete(&mut set).await
+        tokio::select! {
+            _ = cancel_token.cancelled() => {
+                debug!("Cancellation requested, aborting all solver tasks.");
+                None
+            }
+            res = block_until_complete(&mut set) => {
+                debug!("Found Solution, aborting remaining solver tasks.");
+                res
+            }
+        }
     };
-
+    set.abort_all();
     result
 }
 
@@ -78,7 +87,6 @@ async fn block_until_complete(set: &mut JoinSet<bool>) -> Option<Vec<usize>> {
             Err(_) => {}
         }
     }
-    set.abort_all();
     result
 }
 
@@ -149,10 +157,10 @@ impl RecursiveSolver {
     }
 
     pub async fn solve(&mut self) -> bool {
-        self.solve_recursive(self.start_tile_index)
+        self.solve_recursive(self.start_tile_index).await
     }
 
-    fn solve_recursive(&mut self, tile_index: usize) -> bool {
+    async fn solve_recursive(&mut self, tile_index: usize) -> bool {
         if tile_index >= self.positioned_tiles.len() {
             return self.submit_solution();
         }
@@ -165,7 +173,7 @@ impl RecursiveSolver {
                     .xor(&self.board_bitmasks[tile_index - 1], &placement);
                 self.used_tile_indices[tile_index] = i;
                 self.board_bitmasks[tile_index] = self.tmp_bitmask.clone();
-                if self.solve_recursive(tile_index + 1) {
+                if Box::pin(async { self.solve_recursive(tile_index + 1).await }).await {
                     return true;
                 }
             }
@@ -177,6 +185,12 @@ impl RecursiveSolver {
     fn submit_solution(&self) -> bool {
         debug!("Submitting solution...");
         let board_filled = self.board_bitmasks.last().unwrap().all_relevant_bits_set();
+        if board_filled {
+            debug!(
+                "Solution found with tile placements: {:?}",
+                self.used_tile_indices
+            );
+        }
         board_filled
     }
 
@@ -192,5 +206,14 @@ impl RecursiveSolver {
                 bitmask.to_string(self.board_width)
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_solve_filling() {
+        // Add tests for the solve_filling function here
     }
 }

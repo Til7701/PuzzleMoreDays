@@ -5,6 +5,7 @@ use once_cell::sync::Lazy;
 use std::backtrace::Backtrace;
 use std::sync::{Mutex, MutexGuard, TryLockError};
 use tokio::runtime::Runtime;
+use tokio_util::sync::CancellationToken;
 
 static APP_STATE: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::default()));
 
@@ -14,7 +15,7 @@ pub struct State {
     pub target_selection: Option<Target>,
     pub solver_status: SolverStatus,
     pub solver_call_id: Option<SolverCallId>,
-    pub solver_task_handle: Option<tokio::task::AbortHandle>,
+    pub solver_cancel_token: Option<CancellationToken>,
     pub runtime: Option<Runtime>,
 }
 
@@ -43,7 +44,7 @@ impl Default for State {
             target_selection: default_target,
             solver_status: SolverStatus::Disabled,
             solver_call_id: None,
-            solver_task_handle: None,
+            solver_cancel_token: None,
             runtime: None,
         }
     }

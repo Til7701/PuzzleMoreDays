@@ -7,6 +7,7 @@ use crate::{puzzle, solver};
 use adw::glib;
 use adw::prelude::{AdwDialogExt, AlertDialogExt};
 use gtk::prelude::{ButtonExt, WidgetExt};
+use log::debug;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{mpsc, Arc};
@@ -164,6 +165,7 @@ impl MainPresenter {
         });
 
         let call_id = solver::create_solver_call_id();
+        debug!("Starting solver call: {:?}", call_id);
         let mut state = get_state();
         state.solver_status = SolverStatus::Running {
             call_id: call_id.clone(),

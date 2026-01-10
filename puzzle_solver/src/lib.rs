@@ -3,6 +3,7 @@ use crate::board::Board;
 use crate::core::PositionedTile;
 use crate::result::{Solution, UnsolvableReason};
 use crate::tile::Tile;
+use tokio_util::sync::CancellationToken;
 
 mod array_util;
 mod bitmask;
@@ -11,7 +12,11 @@ mod core;
 pub mod result;
 pub mod tile;
 
-pub async fn solve_all_filling(board: Board, tiles: &[Tile]) -> Result<Solution, UnsolvableReason> {
+pub async fn solve_all_filling(
+    board: Board,
+    tiles: &[Tile],
+    cancel_token: CancellationToken,
+) -> Result<Solution, UnsolvableReason> {
     let mut board = board;
     board.trim();
 
@@ -26,6 +31,7 @@ pub async fn solve_all_filling(board: Board, tiles: &[Tile]) -> Result<Solution,
         board.get_array().dim().0 as i32,
         &board_bitmask,
         &positioned_tiles,
+        cancel_token,
     )
     .await;
 

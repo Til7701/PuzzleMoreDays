@@ -28,6 +28,7 @@ use gtk::{gio, glib, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION};
 mod imp {
     use super::*;
     use crate::presenter::main::MainPresenter;
+    use crate::state::get_state;
     use crate::window::PuzzlemoredaysWindow;
     use simple_logger::SimpleLogger;
 
@@ -74,6 +75,16 @@ mod imp {
             );
 
             window.present();
+        }
+
+        fn shutdown(&self) {
+            self.parent_shutdown();
+            let mut state = get_state();
+            let runtime = state.runtime.take();
+            if let Some(runtime) = runtime {
+                drop(state);
+                runtime.shutdown_background();
+            }
         }
     }
 

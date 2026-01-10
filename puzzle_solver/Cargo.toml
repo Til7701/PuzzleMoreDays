@@ -7,3 +7,4 @@ version.workspace = true
 ndarray = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
+tokio-util = { workspace = true }
