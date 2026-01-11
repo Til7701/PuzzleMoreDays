@@ -51,6 +51,10 @@ pub async fn solve_filling(
     positioned_tiles: &[PositionedTile],
     cancel_token: CancellationToken,
 ) -> Option<Vec<usize>> {
+    if board_bitmask.all_relevant_bits_set() {
+        return Some(Vec::new());
+    }
+
     let solvers: Vec<RecursiveSolver> =
         prepare_solvers(board_width, board_bitmask, positioned_tiles, &cancel_token);
     let mut set: JoinSet<bool> = JoinSet::new();
@@ -96,6 +100,9 @@ fn prepare_solvers(
     positioned_tiles: &[PositionedTile],
     cancel_token: &CancellationToken,
 ) -> Vec<RecursiveSolver> {
+    if positioned_tiles.is_empty() {
+        return Vec::new();
+    }
     let first_tile = positioned_tiles.first().unwrap();
     let mut solvers = Vec::with_capacity(first_tile.bitmasks.len());
 
