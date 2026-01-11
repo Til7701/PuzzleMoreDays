@@ -1,7 +1,9 @@
 use crate::puzzle::config::Target;
 use crate::puzzle_state::{Cell, PuzzleState};
-use crate::state::{get_state, SolverStatus, State};
+use crate::state::SolverState::Done;
+use crate::state::{get_runtime, get_state, SolverState, State};
 use log::debug;
+use ndarray::s;
 use puzzle_solver::board::Board;
 use puzzle_solver::tile::Tile;
 use std::cmp::PartialEq;
@@ -12,7 +14,7 @@ use tokio_util::sync::CancellationToken;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SolverCallId(u64);
 
-pub type OnCompleteCallback = Box<dyn FnOnce(SolverStatus) + Send>;
+pub type OnCompleteCallback = Box<dyn FnOnce(SolverState) + Send>;
 
 static SOLVER_CALL_ID_ATOMIC_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -25,36 +27,24 @@ pub fn solve_for_target(
     puzzle_state: &PuzzleState,
     target: &Target,
     on_complete: OnCompleteCallback,
+    cancel_token: CancellationToken,
 ) {
-    init_runtime_if_needed();
-    let cancel_token = CancellationToken::new();
     let board = create_board(puzzle_state, target);
     let tiles: Vec<Tile> = puzzle_state
         .unused_tiles
         .iter()
         .map(|tile_state| Tile::new(tile_state.base.clone()))
         .collect();
-    let mut state = get_state();
-    state.solver_call_id = Some(solver_call_id.clone());
-    state.solver_cancel_token = Some(cancel_token.clone());
-    let runtime = state.runtime.as_ref().unwrap();
+    let runtime = get_runtime();
     runtime.spawn({
         let solver_call_id = solver_call_id.clone();
         let cancel_token = cancel_token.clone();
         async move {
+            debug!("Starting Solver task.");
             let result = puzzle_solver::solve_all_filling(board, &tiles, cancel_token).await;
             handle_on_complete(solver_call_id, result.is_ok(), on_complete);
         }
     });
-    drop(state);
-}
-
-fn init_runtime_if_needed() {
-    let mut state = get_state();
-    if state.runtime.is_none() {
-        let runtime = runtime::Builder::new_multi_thread().build().unwrap();
-        state.runtime = Some(runtime);
-    }
 }
 
 fn handle_on_complete(
@@ -63,21 +53,27 @@ fn handle_on_complete(
     on_complete: OnCompleteCallback,
 ) {
     let mut state = get_state();
-    if state.solver_call_id == Some(solver_call_id.clone()) {
-        state.solver_call_id = None;
+    if let SolverState::Running { call_id, .. } = &state.solver_state
+        && *call_id == solver_call_id
+    {
+        state.solver_state = Done { solvable };
         drop(state);
-        on_complete(SolverStatus::Done { solvable });
+        on_complete(Done { solvable });
     }
 }
 
-pub fn interrupt_solver_call(call_id: &SolverCallId, state: &State) {
-    debug!("Interrupting solver call: {:?}", call_id);
-    if state.solver_call_id == Some(call_id.clone()) {
-        if let Some(cancel_token) = &state.solver_cancel_token {
+pub fn interrupt_solver_call(state: &State) {
+    match &state.solver_state {
+        SolverState::Running {
+            call_id,
+            cancel_token,
+        } => {
+            debug!("Interrupting solver call: {:?}", call_id);
             cancel_token.cancel();
             debug!("Solver call {:?} aborted.", call_id);
         }
-    }
+        _ => return,
+    };
 }
 
 pub fn is_solved(puzzle_state: &PuzzleState, target: &Target) -> bool {

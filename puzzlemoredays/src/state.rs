@@ -3,20 +3,21 @@ use crate::puzzle::PuzzleConfig;
 use crate::solver::SolverCallId;
 use once_cell::sync::Lazy;
 use std::backtrace::Backtrace;
+use std::mem;
+use std::ops::DerefMut;
 use std::sync::{Mutex, MutexGuard, TryLockError};
+use tokio::runtime;
 use tokio::runtime::Runtime;
 use tokio_util::sync::CancellationToken;
 
 static APP_STATE: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::default()));
+static RUNTIME: Lazy<Mutex<Runtime>> = Lazy::new(|| Mutex::new(create_runtime()));
 
 #[derive(Debug)]
 pub struct State {
     pub puzzle_config: PuzzleConfig,
     pub target_selection: Option<Target>,
-    pub solver_status: SolverStatus,
-    pub solver_call_id: Option<SolverCallId>,
-    pub solver_cancel_token: Option<CancellationToken>,
-    pub runtime: Option<Runtime>,
+    pub solver_state: SolverState,
 }
 
 pub fn get_state() -> MutexGuard<'static, State> {
@@ -28,7 +29,7 @@ pub fn get_state() -> MutexGuard<'static, State> {
                 std::process::id(),
                 Backtrace::force_capture()
             );
-            std::thread::sleep(std::time::Duration::from_secs(1));
+            std::thread::sleep(std::time::Duration::from_secs(2));
             APP_STATE.lock().unwrap()
         }
         Err(TryLockError::Poisoned(_)) => APP_STATE.lock().unwrap(),
@@ -42,17 +43,44 @@ impl Default for State {
         State {
             puzzle_config,
             target_selection: default_target,
-            solver_status: SolverStatus::Disabled,
-            solver_call_id: None,
-            solver_cancel_token: None,
-            runtime: None,
+            solver_state: SolverState::Disabled,
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub enum SolverStatus {
+pub enum SolverState {
     Disabled,
-    Running { call_id: SolverCallId },
-    Done { solvable: bool },
+    Running {
+        call_id: SolverCallId,
+        cancel_token: CancellationToken,
+    },
+    Done {
+        solvable: bool,
+    },
+}
+
+pub fn get_runtime() -> MutexGuard<'static, Runtime> {
+    match RUNTIME.try_lock() {
+        Ok(guard) => guard,
+        Err(TryLockError::WouldBlock) => {
+            eprintln!(
+                "get_runtime: mutex busy (possible deadlock). PID={} Backtrace:\n{:?}",
+                std::process::id(),
+                Backtrace::force_capture()
+            );
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            RUNTIME.lock().unwrap()
+        }
+        Err(TryLockError::Poisoned(_)) => RUNTIME.lock().unwrap(),
+    }
+}
+
+pub fn take_runtime() -> Runtime {
+    let runtime = mem::replace(get_runtime().deref_mut(), create_runtime());
+    runtime
+}
+
+fn create_runtime() -> Runtime {
+    runtime::Builder::new_multi_thread().build().unwrap()
 }

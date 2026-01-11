@@ -1,6 +1,6 @@
 use crate::presenter::puzzle_area::PuzzleAreaPresenter;
 use crate::solver::{interrupt_solver_call, is_solved};
-use crate::state::{get_state, SolverStatus};
+use crate::state::{get_state, SolverState};
 use crate::view::{create_puzzle_info, create_solved_dialog, create_target_selection_dialog};
 use crate::window::PuzzlemoredaysWindow;
 use crate::{puzzle, solver};
@@ -11,6 +11,7 @@ use log::debug;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{mpsc, Arc};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Debug, Default, Clone)]
 pub struct MainPresenter {
@@ -133,29 +134,29 @@ impl MainPresenter {
             None => return,
         };
 
+        let solver_state = &state.solver_state;
+        match solver_state {
+            SolverState::Running {
+                call_id: _,
+                cancel_token: _,
+            } => interrupt_solver_call(&state),
+            _ => {}
+        }
+
         if is_solved(&puzzle_state, &target) {
-            state.solver_status = SolverStatus::Done { solvable: true };
+            state.solver_state = SolverState::Done { solvable: true };
             drop(state);
-            self.set_solver_status(&SolverStatus::Done { solvable: true });
+            self.set_solver_status(&SolverState::Done { solvable: true });
             self.show_solved_dialog();
             return;
         }
 
-        let solver_status = &state.solver_status;
-        match solver_status {
-            SolverStatus::Running { call_id } => interrupt_solver_call(&call_id, &state),
-            _ => {}
-        }
-        drop(state);
-        let (tx, rx) = mpsc::channel::<SolverStatus>();
+        let (tx, rx) = mpsc::channel::<SolverState>();
         glib::idle_add_local({
             let self_clone = self.clone();
             move || match rx.try_recv() {
                 Ok(solver_status) => {
                     dbg!(&solver_status);
-                    let mut state = get_state();
-                    state.solver_status = solver_status.clone();
-                    drop(state);
                     self_clone.set_solver_status(&solver_status);
                     glib::ControlFlow::Break
                 }
@@ -166,11 +167,12 @@ impl MainPresenter {
 
         let call_id = solver::create_solver_call_id();
         debug!("Starting solver call: {:?}", call_id);
-        let mut state = get_state();
-        state.solver_status = SolverStatus::Running {
+        let cancel_token = CancellationToken::new();
+        state.solver_state = SolverState::Running {
             call_id: call_id.clone(),
+            cancel_token: cancel_token.clone(),
         };
-        self.set_solver_status(&state.solver_status);
+        self.set_solver_status(&state.solver_state);
         drop(state);
         solver::solve_for_target(
             &call_id,
@@ -179,22 +181,23 @@ impl MainPresenter {
             Box::new(move |solver_status| {
                 let _ = tx.send(solver_status);
             }),
+            cancel_token,
         );
     }
 
-    fn set_solver_status(&self, status: &SolverStatus) {
+    fn set_solver_status(&self, status: &SolverState) {
         if let Some(window) = self.window.borrow().as_ref() {
             let solver_status_button = window.solver_status();
             match status {
-                SolverStatus::Disabled => {
+                SolverState::Disabled => {
                     solver_status_button.set_tooltip_text(Some("Solver: Disabled"));
                     solver_status_button.set_icon_name("process-stop-symbolic");
                 }
-                SolverStatus::Running { call_id } => {
+                SolverState::Running { call_id, .. } => {
                     solver_status_button.set_tooltip_text(Some("Solver: Running..."));
                     solver_status_button.set_icon_name("system-run-symbolic");
                 }
-                SolverStatus::Done { solvable } => {
+                SolverState::Done { solvable } => {
                     if *solvable {
                         solver_status_button.set_tooltip_text(Some("Solver: Solvable!"));
                         solver_status_button.set_icon_name("object-select-symbolic");
