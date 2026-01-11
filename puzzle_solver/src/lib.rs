@@ -33,7 +33,9 @@ pub async fn solve_all_filling(
         .map(|tile| PositionedTile::new(tile, &board))
         .collect();
 
-    let banned_bitmasks = banned::create_banned_bitmasks_for_filling(&board, &tiles);
+    let banned_bitmasks = banned::create_banned_bitmasks_for_filling(&board, &tiles)
+        .into_iter()
+        .collect();
 
     let result = core::solve_filling(
         board.get_array().dim().0 as i32,

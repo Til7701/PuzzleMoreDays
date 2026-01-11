@@ -7,6 +7,7 @@ const BITMASK_ARRAY_LENGTH: usize = 1;
 
 const TOTAL_BITS: usize = BITMASK_ARRAY_LENGTH * BITS_IN_PRIMITIVE;
 
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub struct Bitmask {
     relevant_bits: usize,
     bits: [u128; BITMASK_ARRAY_LENGTH],

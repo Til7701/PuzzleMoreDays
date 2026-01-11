@@ -2,8 +2,12 @@ use crate::array_util;
 use crate::bitmask::Bitmask;
 use crate::board::Board;
 use crate::tile::Tile;
+use log::debug;
 use ndarray::{arr2, Array2};
+use std::collections::HashSet;
+use std::hash::Hash;
 
+#[derive(Hash, Eq, PartialEq, Debug)]
 pub struct BannedBitmask {
     pattern: Bitmask,
     area: Bitmask,
@@ -18,14 +22,14 @@ impl BannedBitmask {
 pub fn create_banned_bitmasks_for_filling(
     board: &Board,
     positioned_tiles: &[Tile],
-) -> Vec<BannedBitmask> {
+) -> HashSet<BannedBitmask> {
     let min_tile_size = positioned_tiles
         .iter()
         .map(|tile| tile.base.iter().filter(|&&cell| cell).count())
         .min()
         .unwrap_or(0);
 
-    let mut banned_bitmasks = Vec::new();
+    let mut banned_bitmasks = HashSet::new();
 
     if min_tile_size == 0 {
         // No tiles
@@ -34,15 +38,27 @@ pub fn create_banned_bitmasks_for_filling(
         // Tiles of size 1 can fill any gaps
         return banned_bitmasks;
     } else {
-        let one_by_one_banned = banned_bitmasks_1x1(board);
-        banned_bitmasks.extend(one_by_one_banned);
+        banned_bitmasks.extend(banned_bitmasks_1x1(board));
+        banned_bitmasks.extend(banned_bitmasks_1x2(board));
+        // banned_bitmasks.extend(banned_bitmasks_2x2_corner(board)); TODO this causes the solver to always fail
+        banned_bitmasks.extend(banned_bitmasks_2x2(board));
     }
 
+    debug!(
+        "Created {} banned bitmasks for filling.",
+        banned_bitmasks.len()
+    );
+    for banned in banned_bitmasks.iter() {
+        debug!(
+            "Banned:\n{}\n{}",
+            banned.pattern.to_string(board.get_array().dim().0 as i32),
+            banned.area.to_string(board.get_array().dim().0 as i32)
+        );
+    }
     banned_bitmasks
 }
 
-fn banned_bitmasks_1x1(board: &Board) -> Vec<BannedBitmask> {
-    let mut banned_bitmasks = Vec::new();
+fn banned_bitmasks_1x1(board: &Board) -> HashSet<BannedBitmask> {
     let pattern = arr2(&[
         [false, true, false],
         [true, false, true],
@@ -53,6 +69,81 @@ fn banned_bitmasks_1x1(board: &Board) -> Vec<BannedBitmask> {
         [true, true, true],
         [false, true, false],
     ]);
+    banned_bitmasks_with(board, &pattern, &area)
+}
+
+fn banned_bitmasks_1x2(board: &Board) -> HashSet<BannedBitmask> {
+    let pattern = arr2(&[
+        [false, true, true, false],
+        [true, false, false, true],
+        [false, true, true, false],
+    ]);
+    let area = arr2(&[
+        [false, true, true, false],
+        [true, true, true, true],
+        [false, true, true, false],
+    ]);
+    banned_bitmasks_with_all_rotations(board, &pattern, &area)
+}
+
+fn banned_bitmasks_2x2_corner(board: &Board) -> HashSet<BannedBitmask> {
+    let pattern = arr2(&[
+        [false, true, true, false],
+        [true, false, false, true],
+        [true, false, true, false],
+        [false, true, false, false],
+    ]);
+    let area = arr2(&[
+        [false, true, true, false],
+        [true, true, true, true],
+        [true, true, true, false],
+        [false, true, false, false],
+    ]);
+    banned_bitmasks_with_all_rotations(board, &pattern, &area)
+}
+
+fn banned_bitmasks_2x2(board: &Board) -> HashSet<BannedBitmask> {
+    let pattern = arr2(&[
+        [false, true, true, false],
+        [true, false, false, true],
+        [true, false, false, true],
+        [false, true, true, false],
+    ]);
+    let area = arr2(&[
+        [false, true, true, false],
+        [true, true, true, true],
+        [true, true, true, true],
+        [false, true, true, false],
+    ]);
+    banned_bitmasks_with(board, &pattern, &area)
+}
+
+fn banned_bitmasks_with_all_rotations(
+    board: &Board,
+    pattern: &Array2<bool>,
+    area: &Array2<bool>,
+) -> HashSet<BannedBitmask> {
+    let mut banned_bitmasks = HashSet::new();
+    let mut current_pattern = pattern.clone();
+    let mut current_area = area.clone();
+
+    for _ in 0..4 {
+        let new_banned_bitmasks = banned_bitmasks_with(board, &current_pattern, &current_area);
+        banned_bitmasks.extend(new_banned_bitmasks);
+
+        current_pattern = array_util::rotate_90(&current_pattern);
+        current_area = array_util::rotate_90(&current_area);
+    }
+
+    banned_bitmasks
+}
+
+fn banned_bitmasks_with(
+    board: &Board,
+    pattern: &Array2<bool>,
+    area: &Array2<bool>,
+) -> HashSet<BannedBitmask> {
+    let mut banned_bitmasks = HashSet::new();
 
     for x in 0..board.get_array().dim().0 {
         for y in 0..board.get_array().dim().1 {
@@ -64,7 +155,7 @@ fn banned_bitmasks_1x1(board: &Board) -> Vec<BannedBitmask> {
                     y as isize - 1,
                     board,
                 );
-                banned_bitmasks.push(banned_bitmask);
+                banned_bitmasks.insert(banned_bitmask);
             }
         }
     }
