@@ -53,6 +53,8 @@ impl MainPresenter {
                 let mut state = get_state();
                 state.target_selection = puzzle_config.default_target.clone();
                 state.puzzle_config = puzzle_config;
+                state.solver_state = SolverState::Initial;
+                self_clone.set_solver_status(&SolverState::Initial);
                 drop(state);
 
                 puzzle_area_presenter.setup_puzzle_config_from_state(Rc::new({
@@ -213,6 +215,10 @@ impl MainPresenter {
         if let Some(window) = self.window.borrow().as_ref() {
             let solver_status_button = window.solver_status();
             match status {
+                SolverState::Initial => {
+                    solver_status_button.set_tooltip_text(Some("Solver"));
+                    solver_status_button.set_icon_name("circle-outline-thick-symbolic");
+                }
                 SolverState::Disabled => {
                     solver_status_button.set_tooltip_text(Some("Solver: Disabled"));
                     solver_status_button.set_icon_name("stop-sign-large-outline-symbolic");

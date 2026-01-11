@@ -53,6 +53,7 @@ impl Default for State {
 
 #[derive(Debug, Clone)]
 pub enum SolverState {
+    Initial,
     Disabled,
     Running {
         call_id: SolverCallId,
