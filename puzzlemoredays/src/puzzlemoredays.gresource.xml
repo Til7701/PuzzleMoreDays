@@ -6,5 +6,14 @@
         <file preprocess="xml-stripblanks">solver-dialog.ui</file>
         <file>style.css</file>
     </gresource>
+    <!-- @formatter:off -->
+    <gresource prefix="/de/til7701/PuzzleMoreDays/icons/scalable/actions/">
+        <file preprocess="xml-stripblanks" alias="stop-sign-large-outline-symbolic.svg">icons/stop-sign-large-outline-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="spinner-symbolic.svg">icons/spinner-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="check-round-outline2-symbolic.svg">icons/check-round-outline2-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="cross-large-circle-outline-symbolic.svg">icons/cross-large-circle-outline-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="info-outline-symbolic.svg">icons/info-outline-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="circle-outline-thick-symbolic.svg">icons/circle-outline-thick-symbolic.svg</file>
+    </gresource>
+    <!-- @formatter:on -->
 </gresources>
-

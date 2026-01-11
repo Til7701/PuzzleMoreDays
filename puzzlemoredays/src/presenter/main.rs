@@ -215,19 +215,19 @@ impl MainPresenter {
             match status {
                 SolverState::Disabled => {
                     solver_status_button.set_tooltip_text(Some("Solver: Disabled"));
-                    solver_status_button.set_icon_name("process-stop-symbolic");
+                    solver_status_button.set_icon_name("stop-sign-large-outline-symbolic");
                 }
                 SolverState::Running { .. } => {
                     solver_status_button.set_tooltip_text(Some("Solver: Running..."));
-                    solver_status_button.set_icon_name("system-run-symbolic");
+                    solver_status_button.set_icon_name("spinner-symbolic");
                 }
                 SolverState::Done { solvable, .. } => {
                     if *solvable {
                         solver_status_button.set_tooltip_text(Some("Solver: Solvable!"));
-                        solver_status_button.set_icon_name("object-select-symbolic");
+                        solver_status_button.set_icon_name("check-round-outline2-symbolic");
                     } else {
                         solver_status_button.set_tooltip_text(Some("Solver: Unsolvable"));
-                        solver_status_button.set_icon_name("edit-delete-symbolic");
+                        solver_status_button.set_icon_name("cross-large-circle-outline-symbolic");
                     }
                 }
             }

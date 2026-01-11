@@ -24,7 +24,7 @@
                         </child>
                         <child type="start">
                             <object class="GtkButton" id="puzzle_info_button">
-                                <property name="icon-name">help-about-symbolic</property>
+                                <property name="icon-name">info-outline-symbolic</property>
                                 <property name="tooltip-text" translatable="yes">Puzzle Information</property>
                             </object>
                         </child>
@@ -40,7 +40,7 @@
                         </child>
                         <child type="start">
                             <object class="GtkButton" id="solver_status">
-                                <property name="icon-name">application-x-addon-symbolic</property>
+                                <property name="icon-name">circle-outline-thick-symbolic</property>
                                 <property name="tooltip-text" translatable="yes">Solver Status</property>
                             </object>
                         </child>
