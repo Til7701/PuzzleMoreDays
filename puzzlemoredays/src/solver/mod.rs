@@ -3,12 +3,10 @@ use crate::puzzle_state::{Cell, PuzzleState};
 use crate::state::SolverState::Done;
 use crate::state::{get_runtime, get_state, SolverState, State};
 use log::debug;
-use ndarray::s;
 use puzzle_solver::board::Board;
 use puzzle_solver::tile::Tile;
 use std::cmp::PartialEq;
 use std::sync::atomic::{AtomicU64, Ordering};
-use tokio::{runtime, task};
 use tokio_util::sync::CancellationToken;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

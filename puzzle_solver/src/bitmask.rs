@@ -1,5 +1,5 @@
 use ndarray::Array2;
-use std::fmt::{Display, Formatter};
+use std::fmt::Formatter;
 use std::ops::{BitAnd, BitOr, BitXor, Index};
 
 const BITS_IN_PRIMITIVE: usize = 128;
@@ -133,7 +133,7 @@ impl Bitmask {
 
     pub fn to_string(&self, board_width: i32) -> String {
         let mut output = String::new();
-        for bit_index in 0..self.relevant_bits as usize {
+        for bit_index in 0..self.relevant_bits {
             if bit_index as i32 % board_width == 0 && bit_index != 0 {
                 output.push('_');
             }

@@ -4,17 +4,16 @@ use crate::board::Board;
 use crate::tile::Tile;
 use log::debug;
 use ndarray::Array2;
-use tokio::task::{JoinHandle, JoinSet};
+use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
 #[derive(Clone)]
 pub struct PositionedTile {
-    pub tile_index: usize,
     pub bitmasks: Vec<Bitmask>,
 }
 
 impl PositionedTile {
-    pub fn new(tile_index: usize, tile: &Tile, board: &Board) -> Self {
+    pub fn new(tile: &Tile, board: &Board) -> Self {
         let all_placements: Vec<Array2<bool>> = tile
             .all_rotations
             .iter()
@@ -31,14 +30,10 @@ impl PositionedTile {
             .map(|array| Bitmask::from(array))
             .collect();
 
-        PositionedTile {
-            tile_index,
-            bitmasks,
-        }
+        PositionedTile { bitmasks }
     }
 
     pub fn print_debug(&self, board_width: i32) {
-        debug!("PositionedTile (index={}):", self.tile_index);
         for bitmask in self.bitmasks.iter() {
             debug!("{}", &bitmask.to_string(board_width));
         }

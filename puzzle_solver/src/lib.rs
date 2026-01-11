@@ -23,8 +23,7 @@ pub async fn solve_all_filling(
     let board_bitmask = Bitmask::from(board.get_array());
     let positioned_tiles: Vec<PositionedTile> = tiles
         .iter()
-        .enumerate()
-        .map(|(index, tile)| PositionedTile::new(index, tile, &board))
+        .map(|tile| PositionedTile::new(tile, &board))
         .collect();
 
     let result = core::solve_filling(

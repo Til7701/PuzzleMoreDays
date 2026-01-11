@@ -2,14 +2,14 @@ use crate::offset::{CellOffset, PixelOffset};
 use crate::puzzle::config::{AreaConfig, BoardConfig, Target, TargetIndex};
 use crate::puzzle::PuzzleConfig;
 use crate::state::get_state;
-use adw::prelude::{AdwDialogExt, AlertDialogExt, AlertDialogExtManual, PreferencesGroupExt};
+use adw::prelude::{AlertDialogExt, AlertDialogExtManual, PreferencesGroupExt};
 use adw::prelude::{Cast, PreferencesDialogExt};
 use adw::prelude::{ComboRowExt, PreferencesPageExt};
 use adw::{
     ActionRow, AlertDialog, ComboRow, Dialog, PreferencesDialog, PreferencesGroup, PreferencesPage,
     ResponseAppearance,
 };
-use gtk::prelude::{BoxExt, FrameExt, GridExt};
+use gtk::prelude::{FrameExt, GridExt};
 use gtk::{Frame, Grid, Label, StringList, Widget};
 use ndarray::Array2;
 

@@ -193,7 +193,7 @@ impl MainPresenter {
                     solver_status_button.set_tooltip_text(Some("Solver: Disabled"));
                     solver_status_button.set_icon_name("process-stop-symbolic");
                 }
-                SolverState::Running { call_id, .. } => {
+                SolverState::Running { .. } => {
                     solver_status_button.set_tooltip_text(Some("Solver: Running..."));
                     solver_status_button.set_icon_name("system-run-symbolic");
                 }
