@@ -50,7 +50,7 @@ pub async fn solve_filling(
         return Some(Vec::new());
     }
 
-    let solvers: Vec<RecursiveSolver> =
+    let solvers: Vec<AllFillingSolver> =
         prepare_solvers(board_width, board_bitmask, positioned_tiles, &cancel_token);
     let mut set: JoinSet<bool> = JoinSet::new();
 
@@ -94,7 +94,7 @@ fn prepare_solvers(
     board_bitmask: &Bitmask,
     positioned_tiles: &[PositionedTile],
     cancel_token: &CancellationToken,
-) -> Vec<RecursiveSolver> {
+) -> Vec<AllFillingSolver> {
     if positioned_tiles.is_empty() {
         return Vec::new();
     }
@@ -109,7 +109,7 @@ fn prepare_solvers(
             let mut used_tile_indices: Vec<usize> = vec![0; 1];
             used_tile_indices[0] = i;
 
-            let solver = RecursiveSolver::new(
+            let solver = AllFillingSolver::new(
                 board_width,
                 &board_with_placements,
                 &used_tile_indices,
@@ -124,7 +124,7 @@ fn prepare_solvers(
     solvers
 }
 
-struct RecursiveSolver {
+struct AllFillingSolver {
     board_width: i32,
     start_tile_index: usize,
     positioned_tiles: Vec<PositionedTile>,
@@ -135,7 +135,7 @@ struct RecursiveSolver {
     cancel_token: CancellationToken,
 }
 
-impl RecursiveSolver {
+impl AllFillingSolver {
     pub fn new(
         board_width: i32,
         board_bitmasks: &Bitmask,
@@ -153,7 +153,7 @@ impl RecursiveSolver {
         for _ in used_tile_indices.len()..num_tiles {
             use_tile_indices_vec.push(0);
         }
-        RecursiveSolver {
+        AllFillingSolver {
             board_width,
             start_tile_index: used_tile_indices.len(),
             positioned_tiles,
