@@ -97,6 +97,7 @@ impl PuzzleAreaPresenter {
         drop(state);
         self.update_highlights();
         self.update_layout();
+        self.set_min_width();
     }
 
     fn calculate_tile_start_positions(
@@ -188,6 +189,16 @@ impl PuzzleAreaPresenter {
 
         let grid_config = &mut self.data.borrow_mut().grid_config;
         grid_config.cell_width_pixel = width as u32 / grid_config.grid_h_cell_count;
+    }
+
+    fn set_min_width(&self) {
+        let min_board_elements_width = self.board_presenter.get_min_element_width();
+        let data = self.data.borrow();
+        if let Some(fixed) = &data.fixed {
+            let fixed_min_width =
+                data.grid_config.grid_h_cell_count as i32 * min_board_elements_width;
+            fixed.set_width_request(fixed_min_width);
+        }
     }
 
     fn clear_elements(&self) {
