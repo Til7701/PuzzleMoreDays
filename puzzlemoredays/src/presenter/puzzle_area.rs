@@ -13,7 +13,8 @@ use std::cell::RefCell;
 use std::mem::take;
 use std::rc::Rc;
 
-pub const WINDOW_TO_BOARD_RATIO: f64 = 3.0;
+pub const WINDOW_TO_BOARD_RATIO: f64 = 2.0;
+pub const MIN_CELLS_TO_THE_SIDES_OF_BOARD: u32 = 6;
 pub const OVERLAP_HIGHLIGHT_CSS_CLASS: &str = "overlap-highlight";
 pub const OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS: &str = "out-of-bounds-highlight";
 
@@ -149,6 +150,24 @@ impl PuzzleAreaPresenter {
             let end = grid_config.board_offset_cells.0 * 2
                 + puzzle_config.board_config.layout.dim().0 as i32;
             let mut next_pos = CellOffset(1, 2 + puzzle_config.board_config.layout.dim().1 as i32);
+            let mut next_tile_index = positions.len();
+            while end > next_pos.0 {
+                positions.push(next_pos.clone());
+                if tiles.len() == positions.len() {
+                    break;
+                }
+                let tile = &tiles[next_tile_index];
+                next_pos.0 += tile.base.dim().0 as i32 + 1;
+                next_tile_index += 1;
+            }
+        }
+
+        // Buttom second row
+        if tiles.len() != positions.len() {
+            let end = grid_config.board_offset_cells.0 * 2
+                + puzzle_config.board_config.layout.dim().0 as i32;
+            let mut next_pos =
+                CellOffset(1, 2 + 4 + puzzle_config.board_config.layout.dim().1 as i32);
             let mut next_tile_index = positions.len();
             while end > next_pos.0 {
                 positions.push(next_pos.clone());

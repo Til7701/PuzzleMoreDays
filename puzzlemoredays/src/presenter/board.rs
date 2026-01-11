@@ -1,5 +1,7 @@
 use crate::offset::{CellOffset, PixelOffset};
-use crate::presenter::puzzle_area::{PuzzleAreaData, WINDOW_TO_BOARD_RATIO};
+use crate::presenter::puzzle_area::{
+    PuzzleAreaData, MIN_CELLS_TO_THE_SIDES_OF_BOARD, WINDOW_TO_BOARD_RATIO,
+};
 use crate::puzzle::config::TargetIndex;
 use crate::puzzle::PuzzleConfig;
 use crate::state::get_state;
@@ -29,8 +31,15 @@ impl BoardPresenter {
         let mut data = self.data.borrow_mut();
         data.add_to_fixed(&widget, &PixelOffset::default());
 
+        let mut cells_to_the_side = (((puzzle_config.board_config.layout.dim().0 as f64
+            * WINDOW_TO_BOARD_RATIO)
+            - puzzle_config.board_config.layout.dim().0 as f64)
+            / 2.0) as u32;
+        if cells_to_the_side < MIN_CELLS_TO_THE_SIDES_OF_BOARD {
+            cells_to_the_side = MIN_CELLS_TO_THE_SIDES_OF_BOARD;
+        }
         let grid_h_cell_count =
-            (puzzle_config.board_config.layout.dim().0 as f64 * WINDOW_TO_BOARD_RATIO) as u32;
+            puzzle_config.board_config.layout.dim().0 as u32 + (cells_to_the_side * 2);
         let board_offset_horizontal_cells =
             ((grid_h_cell_count - puzzle_config.board_config.layout.dim().0 as u32) / 2) as i32;
 
@@ -98,10 +107,7 @@ impl BoardPresenter {
                         && let Some(child) = frame.child()
                         && let Ok(label) = child.downcast::<Label>()
                     {
-                        let frame_width = frame.width();
-                        dbg!(frame_width);
                         let pixel_width = label.layout().pixel_size().0;
-                        dbg!(pixel_width);
                         (pixel_width as f64 * 1.4) as i32
                     } else {
                         0
