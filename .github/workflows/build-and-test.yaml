@@ -13,6 +13,7 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
       options: --privileged
     steps:
+      - uses: actions/checkout@v6.0.2
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           manifest-path: de.til7701.PuzzleMoreDays.json
@@ -21,7 +22,6 @@ jobs:
       - name: Install Flatpak Builder
         run: |
           flatpak install flathub -y org.flatpak.Builder
-      - uses: actions/checkout@v6.0.2
       - name: Run Lint on Manifest
         run: |
           # Run linting but do not fail the build if there are linting issues
