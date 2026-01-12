@@ -42,8 +42,8 @@
       "buildsystem": "meson",
       "sources": [
         {
-          "type": "git",
-          "url": "https://github.com/Til7701/PuzzleMoreDays.git"
+          "type": "dir",
+          "path": "."
         }
       ]
     }

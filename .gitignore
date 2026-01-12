@@ -1,5 +1,7 @@
-target/
-build/
-puzzlemoredays/src/config.rs
+/target/
+/build/
+/repo/
+/.flatpak-builder/
+/puzzlemoredays/src/config.rs
 
-.idea/
+/.idea/

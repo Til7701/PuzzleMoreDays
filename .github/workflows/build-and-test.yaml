@@ -1,0 +1,37 @@
+name: Build and Test
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  flatpak:
+    name: Build with Flatpak
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Run Lint on Manifest
+        run: |
+          # Run linting but do not fail the build if there are linting issues
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest de.til7701.PuzzleMoreDays.json || true
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: de.til7701.PuzzleMoreDays.json
+          run-tests: true
+          bundle: PuzzleMoreDays.flatpak
+      - name: Run Lint on Repo
+        run: |
+          # Run linting on the built repo but do not fail the build if there are linting issues
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo || true
+      - name: Upload Flatpak Bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: flatpak-bundle
+          path: PuzzleMoreDays.flatpak
+          retention-days: 3
+          overwrite: true
+          if-no-files-found: error
