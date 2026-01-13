@@ -86,6 +86,7 @@ impl MainPresenter {
                                 .borrow()
                                 .update_highlights();
                             self_clone.calculate_solvability_if_enabled();
+                            self_clone.set_solver_status(&get_state().solver_state);
                         }
                     });
                     dialog.present(Some(window));
@@ -219,20 +220,27 @@ impl MainPresenter {
                     solver_status_button.set_tooltip_text(Some("Solver"));
                     solver_status_button.set_icon_name("circle-outline-thick-symbolic");
                 }
+                SolverState::NotAvailable => {
+                    solver_status_button
+                        .set_tooltip_text(Some("Solver: Not Available without Target Day"));
+                    solver_status_button.set_icon_name("stop-sign-large-outline-symbolic");
+                }
                 SolverState::Disabled => {
                     solver_status_button.set_tooltip_text(Some("Solver: Disabled"));
                     solver_status_button.set_icon_name("stop-sign-large-outline-symbolic");
                 }
                 SolverState::Running { .. } => {
                     solver_status_button.set_tooltip_text(Some("Solver: Running..."));
-                    solver_status_button.set_icon_name("spinner-symbolic");
+                    solver_status_button.set_icon_name("timer-sand-symbolic");
                 }
                 SolverState::Done { solvable, .. } => {
                     if *solvable {
-                        solver_status_button.set_tooltip_text(Some("Solver: Solvable!"));
+                        solver_status_button
+                            .set_tooltip_text(Some("Solver: Solvable for current Target Day!"));
                         solver_status_button.set_icon_name("check-round-outline2-symbolic");
                     } else {
-                        solver_status_button.set_tooltip_text(Some("Solver: Unsolvable"));
+                        solver_status_button
+                            .set_tooltip_text(Some("Solver: Unsolvable for current Target Day!"));
                         solver_status_button.set_icon_name("cross-large-circle-outline-symbolic");
                     }
                 }

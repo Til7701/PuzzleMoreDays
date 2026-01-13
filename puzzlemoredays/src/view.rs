@@ -1,7 +1,7 @@
 use crate::offset::{CellOffset, PixelOffset};
 use crate::puzzle::config::{AreaConfig, BoardConfig, Target, TargetIndex};
 use crate::puzzle::PuzzleConfig;
-use crate::state::get_state;
+use crate::state::{get_state, SolverState};
 use adw::prelude::{AlertDialogExt, AlertDialogExtManual, PreferencesGroupExt};
 use adw::prelude::{Cast, PreferencesDialogExt};
 use adw::prelude::{ComboRowExt, PreferencesPageExt};
@@ -265,6 +265,7 @@ pub fn create_target_selection_dialog() -> AlertDialog {
             dbg!("Cleared target selection");
             let mut state = get_state();
             state.target_selection = None;
+            state.solver_state = SolverState::Initial;
             drop(state);
         }
     });
