@@ -6,7 +6,7 @@
         xmlns="http://www.w3.org/2000/svg"
         width="100"
         height="100"
-        viewBox="0 0 100 100">
+        viewBox="5 5 90 90">
 
     <metadata>
         <rdf:RDF>
@@ -21,21 +21,13 @@
     </metadata>
 
     <rect
-            width="100"
-            height="100"
-            fill="#241F31"
-            rx="10"
-            ry="10"
-    />
-
-    <rect
             x="10"
             y="10"
             width="20"
             height="20"
             fill="#1C71D8"
-            rx="5"
-            ry="5"
+            rx="10"
+            ry="10"
     />
     <rect
             x="20"
@@ -58,8 +50,8 @@
             width="20"
             height="20"
             fill="#2EC27E"
-            rx="5"
-            ry="5"
+            rx="10"
+            ry="10"
     />
     <rect
             x="50"
@@ -82,14 +74,21 @@
             width="20"
             height="20"
             fill="#813D9C"
-            rx="5"
-            ry="5"
+            rx="10"
+            ry="10"
     />
     <rect
             x="50"
             y="30"
             width="20"
             height="40"
+            fill="#813D9C"
+    />
+    <rect
+            x="50"
+            y="50"
+            width="40"
+            height="20"
             fill="#813D9C"
     />
     <rect
@@ -113,8 +112,8 @@
             width="20"
             height="20"
             fill="#C01C28"
-            rx="5"
-            ry="5"
+            rx="10"
+            ry="10"
     />
     <rect
             x="10"
