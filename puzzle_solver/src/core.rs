@@ -170,7 +170,7 @@ impl AllFillingSolver {
             start_tile_index: used_tile_indices.len(),
             board_bitmasks: vec![board_bitmasks.clone(); num_tiles],
             used_tile_indices: use_tile_indices_vec,
-            tmp_bitmask: Bitmask::new(board_bitmasks.get_relevant_bits()),
+            tmp_bitmask: Bitmask::new(board_bitmasks.relevant_bits()),
             yield_counter: 0,
             shared,
         }
