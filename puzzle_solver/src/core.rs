@@ -9,9 +9,14 @@ use std::sync::Arc;
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
+/// A tile with all its possible placements on the board represented as bitmasks.
+///
+/// The bitmasks are 1 for filled cells and 0 for empty cells.
+/// If the cell is 1 in the bitmask, it means that the tile occupies that cell on the board.
+/// The board itself is not represented in the bitmask.
 #[derive(Clone)]
 pub struct PositionedTile {
-    pub bitmasks: Vec<Bitmask>,
+    bitmasks: Vec<Bitmask>,
 }
 
 impl PositionedTile {
@@ -35,7 +40,8 @@ impl PositionedTile {
         PositionedTile { bitmasks }
     }
 
-    pub fn print_debug(&self, board_width: i32) {
+    #[allow(dead_code)]
+    fn print_debug(&self, board_width: i32) {
         for bitmask in self.bitmasks.iter() {
             debug!("{}", &bitmask.to_string(board_width));
         }
@@ -152,7 +158,7 @@ struct AllFillingSolver {
 }
 
 impl AllFillingSolver {
-    pub fn new(
+    fn new(
         board_bitmasks: &Bitmask,
         used_tile_indices: &[usize],
         shared: Arc<AllFillingShared>,
@@ -176,7 +182,7 @@ impl AllFillingSolver {
         }
     }
 
-    pub async fn solve(&mut self) -> bool {
+    async fn solve(&mut self) -> bool {
         self.solve_recursive(self.start_tile_index).await
     }
 
@@ -234,7 +240,8 @@ impl AllFillingSolver {
         board_filled
     }
 
-    pub fn print_debug(&self) {
+    #[allow(dead_code)]
+    fn print_debug(&self) {
         debug!("RecursiveSolver Debug Info:");
         debug!("Board Width: {}", self.shared.board_width);
         debug!("Start Tile Index: {}", self.start_tile_index);
@@ -246,5 +253,21 @@ impl AllFillingSolver {
                 bitmask.to_string(self.shared.board_width)
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::arr2;
+
+    #[test]
+    fn test_positioned_tile_new() {
+        let mut board = Board::new((3, 4));
+        board[[0, 0]] = true;
+        let tile = Tile::new(arr2(&[[true, true, true], [true, true, true]]));
+
+        let positioned_tile = PositionedTile::new(&tile, &board);
+        assert!(!positioned_tile.bitmasks.is_empty());
     }
 }
