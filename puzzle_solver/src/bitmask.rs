@@ -1,5 +1,5 @@
 use ndarray::Array2;
-use std::ops::{BitAnd, BitOr, BitXor, Index};
+use std::ops::{BitAnd, BitOr, BitXor, Index, IndexMut};
 
 /// Must be the same as the bits in the primitive type used in the bitmask array.
 const BITS_IN_PRIMITIVE: usize = 128;
@@ -301,15 +301,20 @@ impl BitAnd for Bitmask {
 }
 
 impl Default for Bitmask {
+    /// Creates a new Bitmask, where all bits are initialized to zero.
+    /// The number of relevant bits is set to the maximum supported by the Bitmask.
     fn default() -> Self {
         Self::new(TOTAL_BITS)
     }
 }
 
 impl From<&Array2<bool>> for Bitmask {
+    /// Creates a Bitmask from a 2D array of booleans.
+    /// The relevant bits are determined by the number of elements in the array.
+    /// Each cell in the array corresponds to a bit in the bitmask.
     fn from(value: &Array2<bool>) -> Self {
-        let mut bitmask = Bitmask::new(TOTAL_BITS);
-        bitmask.relevant_bits = value.iter().count();
+        let relevant_bits = value.iter().count();
+        let mut bitmask = Bitmask::new(relevant_bits);
         let (xs, ys) = value.dim();
         for x in 0..ys {
             for y in 0..xs {
@@ -350,6 +355,7 @@ impl Index<usize> for Bitmask {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray::arr2;
 
     #[test]
     fn test_new() {
@@ -546,5 +552,139 @@ mod tests {
         let result = bitmask.to_string(board_width);
 
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_bitor() {
+        let mut a = Bitmask::new(10);
+        a.set_bit(2);
+        a.set_bit(4);
+
+        let mut b = Bitmask::new(10);
+        b.set_bit(4);
+        b.set_bit(6);
+
+        let result = a | b;
+
+        assert_eq!(result[2], true);
+        assert_eq!(result[4], true);
+        assert_eq!(result[6], true);
+        assert_eq!(result[0], false);
+        assert_eq!(result.relevant_bits(), 10);
+    }
+
+    #[test]
+    fn test_bitxor() {
+        let mut a = Bitmask::new(10);
+        a.set_bit(2);
+        a.set_bit(4);
+
+        let mut b = Bitmask::new(10);
+        b.set_bit(4);
+        b.set_bit(6);
+
+        let result = a ^ b;
+
+        assert_eq!(result[2], true);
+        assert_eq!(result[4], false);
+        assert_eq!(result[6], true);
+        assert_eq!(result[0], false);
+        assert_eq!(result.relevant_bits(), 10);
+    }
+
+    #[test]
+    fn test_bitand() {
+        let mut a = Bitmask::new(10);
+        a.set_bit(2);
+        a.set_bit(4);
+
+        let mut b = Bitmask::new(10);
+        b.set_bit(4);
+        b.set_bit(6);
+
+        let result = a & b;
+
+        assert_eq!(result[2], false);
+        assert_eq!(result[4], true);
+        assert_eq!(result[6], false);
+        assert_eq!(result[0], false);
+        assert_eq!(result.relevant_bits(), 10);
+    }
+
+    #[test]
+    fn test_default() {
+        let bitmask = Bitmask::default();
+        assert_eq!(bitmask.relevant_bits(), TOTAL_BITS);
+        for i in 0..TOTAL_BITS {
+            assert_eq!(bitmask[i], false);
+        }
+    }
+
+    #[test]
+    fn test_from_array2_bool() {
+        let array = arr2(&[[true, false, true, true], [false, true, false, false]]);
+
+        let bitmask = Bitmask::from(&array);
+
+        assert_eq!(bitmask.relevant_bits(), 8);
+        assert_eq!(bitmask[0], true);
+        assert_eq!(bitmask[1], false);
+        assert_eq!(bitmask[2], false);
+        assert_eq!(bitmask[3], true);
+        assert_eq!(bitmask[4], true);
+        assert_eq!(bitmask[5], false);
+        assert_eq!(bitmask[6], true);
+        assert_eq!(bitmask[7], false);
+    }
+
+    #[test]
+    fn test_from_array2_bool_empty() {
+        let array = arr2(&[[]]);
+
+        let bitmask = Bitmask::from(&array);
+
+        assert_eq!(bitmask.relevant_bits(), 0);
+    }
+
+    #[test]
+    fn test_from_array2_bool_one() {
+        let array = arr2(&[[true]]);
+
+        let bitmask = Bitmask::from(&array);
+
+        assert_eq!(bitmask.relevant_bits(), 1);
+        assert_eq!(bitmask[0], true);
+    }
+
+    #[test]
+    fn test_clone() {
+        let mut original = Bitmask::new(10);
+        original.set_bit(2);
+        original.set_bit(5);
+
+        let cloned = original.clone();
+
+        assert_eq!(cloned.relevant_bits(), original.relevant_bits());
+        for i in 0..10 {
+            assert_eq!(cloned[i], original[i]);
+        }
+    }
+
+    #[test]
+    fn test_index() {
+        let mut bitmask = Bitmask::new(10);
+        bitmask.set_bit(3);
+        bitmask.set_bit(7);
+
+        assert_eq!(bitmask[0], false);
+        assert_eq!(bitmask[1], false);
+        assert_eq!(bitmask[2], false);
+        assert_eq!(bitmask[3], true);
+        assert_eq!(bitmask[4], false);
+        assert_eq!(bitmask[5], false);
+        assert_eq!(bitmask[6], false);
+        assert_eq!(bitmask[7], true);
+        assert_eq!(bitmask[8], false);
+        assert_eq!(bitmask[9], false);
     }
 }
