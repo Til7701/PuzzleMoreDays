@@ -24,9 +24,8 @@ use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
 use gtk::{
-    gio, glib, CssProvider, InterfaceColorScheme, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION,
+    gio, glib, CssProvider, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION,
 };
-use log::debug;
 use std::fmt::Debug;
 
 mod imp {
@@ -161,35 +160,16 @@ impl PuzzlemoredaysApplication {
             eprintln!("No default adw::Display available to add CSS provider");
         }
 
-        debug!(
-            "Initial GTK application prefer dark theme is {:?}",
-            provider.prefers_color_scheme()
-        );
-        // This has to be manually updated when the system theme changes, since the CSSProvider
-        // somehow does not do that itself.
-        // Remove if this is fixed.
         let settings = Settings::default().unwrap();
-        settings.connect_gtk_application_prefer_dark_theme_notify({
+        settings.connect_gtk_interface_color_scheme_notify({
             let provider = provider.clone();
             move |s| {
-                let theme = s.is_gtk_application_prefer_dark_theme();
-                debug!("GTK application prefer dark theme changed to {:?}", theme);
-                if theme {
-                    provider.set_prefers_color_scheme(InterfaceColorScheme::Dark);
-                } else {
-                    provider.set_prefers_color_scheme(InterfaceColorScheme::Light);
-                }
+                let theme = s.gtk_interface_color_scheme();
+                provider.set_prefers_color_scheme(theme);
             }
         });
-        if settings.is_gtk_application_prefer_dark_theme() {
-            provider.set_prefers_color_scheme(InterfaceColorScheme::Dark);
-        } else {
-            provider.set_prefers_color_scheme(InterfaceColorScheme::Light);
-        }
-        debug!(
-            "GTK application prefer dark theme is {:?}",
-            provider.prefers_color_scheme()
-        );
+        let theme = settings.gtk_interface_color_scheme();
+        provider.set_prefers_color_scheme(theme);
     }
 
     fn setup(&self, window: &PuzzlemoredaysWindow) {
