@@ -229,13 +229,13 @@ fn get_default_target_for_year() -> Option<Target> {
 }
 
 pub fn get_default_config() -> PuzzleConfig {
-    let tiles = create_tiles(&mut default_tiles());
+    let tiles = create_tiles(&default_tiles());
     let board_layout = default_board_layout().reversed_axes();
     let area_indices = default_board_meaning_areas().reversed_axes();
     let display_values = default_board_display_values().reversed_axes();
     let value_order = default_board_value_order().reversed_axes();
     PuzzleConfig::new(
-        "Default Puzzle".to_string(),
+        "Default".to_string(),
         board_layout,
         area_indices,
         display_values,
@@ -258,13 +258,13 @@ pub fn get_default_config() -> PuzzleConfig {
 }
 
 pub fn get_year_config() -> PuzzleConfig {
-    let tiles = create_tiles(&mut year_tiles());
+    let tiles = create_tiles(&year_tiles());
     let board_layout = year_board_layout().reversed_axes();
     let area_indices = year_board_meaning_areas().reversed_axes();
     let display_values = year_board_meaning_display_values().reversed_axes();
     let value_order = year_board_value_order().reversed_axes();
     PuzzleConfig::new(
-        "Year Puzzle".to_string(),
+        "Year".to_string(),
         board_layout,
         area_indices,
         display_values,
@@ -288,7 +288,7 @@ pub fn get_year_config() -> PuzzleConfig {
     )
 }
 
-fn create_tiles(tile_data_list: &mut Vec<Array2<bool>>) -> Vec<TileConfig> {
+fn create_tiles(tile_data_list: &Vec<Array2<bool>>) -> Vec<TileConfig> {
     let mut tiles: Vec<TileConfig> = Vec::new();
     for (i, tile_data) in tile_data_list.iter().enumerate() {
         let transformed_data = tile_data.clone().reversed_axes();

@@ -1,12 +1,28 @@
 use log::debug;
 use ndarray::{s, Array2, Axis};
 
-pub fn rotate_90(array: &Array2<bool>) -> Array2<bool> {
+/// Rotates a 2D boolean array 90 degrees clockwise and returns the new array.
+///
+/// This is a convenience function to allow semantically clearer code when rotating arrays.
+///
+/// # Arguments
+///
+/// * `array`: The rotated 2D boolean array.
+///
+/// returns: ArrayBase<OwnedRepr<bool>, Dim<[usize; 2]>, <OwnedRepr<bool> as RawData>::Elem>
+pub(crate) fn rotate_90<T: Clone>(array: &Array2<T>) -> Array2<T> {
     let mut array = array.clone().reversed_axes();
     array.invert_axis(Axis(1));
     array
 }
 
+/// Removes rows and columns from the sides of a 2D boolean array where all cells are `true`.
+///
+/// # Arguments
+///
+/// * `array`: The mutable reference to the 2D boolean array to be modified.
+///
+/// returns: ()
 pub fn remove_true_rows_cols_from_sides(array: &mut Array2<bool>) {
     loop {
         if array.nrows() == 0 || array.ncols() == 0 {
@@ -41,6 +57,18 @@ pub fn remove_true_rows_cols_from_sides(array: &mut Array2<bool>) {
     }
 }
 
+/// Places the `child` array onto the `parent` array at the specified offsets using a logical OR
+/// operation.
+/// This means that if either the parent or child cell is `true`, the resulting cell will be `true`.
+///
+/// # Arguments
+///
+/// * `parent`: The parent 2D boolean array.
+/// * `child`: The child 2D boolean array to be placed onto the parent.
+/// * `x_offset`: The x-axis offset for placing the child array.
+/// * `y_offset`: The y-axis offset for placing the child array.
+///
+/// returns: Array2<bool>
 pub fn or_arrays_at(
     parent: &Array2<bool>,
     child: &Array2<bool>,
@@ -68,6 +96,15 @@ pub fn or_arrays_at(
     new_array
 }
 
+/// Generates all possible placements of the `child` array onto the `parent` array
+/// using a logical OR operation.
+///
+/// # Arguments
+///
+/// * `parent`: The parent 2D boolean array.
+/// * `child`: The child 2D boolean array to be placed onto the parent.
+///
+/// returns: Vec<Array2<bool>>
 pub fn place_on_all_positions(parent: &Array2<bool>, child: &Array2<bool>) -> Vec<Array2<bool>> {
     let mut placements = Vec::new();
     let parent_rows = parent.nrows();
@@ -104,6 +141,14 @@ pub fn place_on_all_positions(parent: &Array2<bool>, child: &Array2<bool>) -> Ve
     placements
 }
 
+/// Removes the `true` values from the `child` array wherever the `parent` array has `true` values.
+///
+/// # Arguments
+///
+/// * `parent`: The parent 2D boolean array.
+/// * `child`: The mutable reference to the child 2D boolean array to be modified.
+///
+/// returns: ()
 pub fn remove_parent(parent: &Array2<bool>, child: &mut Array2<bool>) {
     for row in 0..parent.nrows() {
         for col in 0..parent.ncols() {
@@ -114,6 +159,7 @@ pub fn remove_parent(parent: &Array2<bool>, child: &mut Array2<bool>) {
     }
 }
 
+/// Prints a 2D boolean array to the debug log, using '█' for `true` and '░' for `false`.
 pub fn debug_print(array: &Array2<bool>) {
     for col in array.columns() {
         let row_str: String = col
@@ -126,12 +172,11 @@ pub fn debug_print(array: &Array2<bool>) {
 
 #[cfg(test)]
 mod test {
-    use crate::array_util::{remove_true_rows_cols_from_sides, rotate_90};
+    use super::*;
     use ndarray::{arr2, Array2};
 
     #[test]
     fn test_rotate_90_size_1() {
-        dbg!("test_rotate_90_size_1");
         let array = arr2(&[[true]]);
         let rotated = rotate_90(&array);
         let expected = arr2(&[[true]]);
@@ -280,5 +325,200 @@ mod test {
             [false, true, false, true],
         ]);
         assert_eq!(expected, array);
+    }
+
+    #[test]
+    fn test_or_arrays_at() {
+        let parent = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        let child = arr2(&[[true, false], [false, true]]);
+        let result = or_arrays_at(&parent, &child, 1, 1);
+        let expected = arr2(&[
+            [false, false, false],
+            [false, true, false],
+            [false, false, true],
+        ]);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_or_arrays_at_empty_child() {
+        let parent = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        let child = arr2(&[[]]);
+        let result = or_arrays_at(&parent, &child, 1, 1);
+        let expected = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_or_arrays_at_child_1x1() {
+        let parent = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        let child = arr2(&[[true]]);
+        let result = or_arrays_at(&parent, &child, 1, 1);
+        let expected = arr2(&[
+            [false, false, false],
+            [false, true, false],
+            [false, false, false],
+        ]);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_or_arrays_at_child_off_parent() {
+        let parent = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        let child = arr2(&[[true, true], [true, true]]);
+        let result = or_arrays_at(&parent, &child, 2, 2);
+        let expected = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, true],
+        ]);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_or_arrays_at_true_parent() {
+        let parent = arr2(&[[true, true, true], [true, true, true], [true, true, true]]);
+        let child = arr2(&[[true, false], [true, false]]);
+        let result = or_arrays_at(&parent, &child, 1, 1);
+        let expected = arr2(&[[true, true, true], [true, true, true], [true, true, true]]);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_or_arrays_at_smaller_parent() {
+        let parent = arr2(&[[false, false], [false, false]]);
+        let child = arr2(&[[true, true, true], [true, true, true], [true, true, true]]);
+        let result = or_arrays_at(&parent, &child, 0, 0);
+        let expected = arr2(&[[true, true], [true, true]]);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_place_on_all_positions() {
+        let parent = arr2(&[
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        let child = arr2(&[[true, false], [false, true]]);
+        let placements = place_on_all_positions(&parent, &child);
+        assert_eq!(placements.len(), 4);
+        assert!(placements.contains(&arr2(&[
+            [true, false, false],
+            [false, true, false],
+            [false, false, false],
+        ])));
+        assert!(placements.contains(&arr2(&[
+            [false, true, false],
+            [false, false, true],
+            [false, false, false],
+        ])));
+        assert!(placements.contains(&arr2(&[
+            [false, false, false],
+            [true, false, false],
+            [false, true, false],
+        ])));
+        assert!(placements.contains(&arr2(&[
+            [false, false, false],
+            [false, true, false],
+            [false, false, true],
+        ])));
+    }
+
+    #[test]
+    fn test_place_on_all_positions_same_size() {
+        let parent = arr2(&[[false, false], [false, false]]);
+        let child = arr2(&[[true, false], [false, true]]);
+        let placements = place_on_all_positions(&parent, &child);
+        assert_eq!(placements.len(), 1);
+        assert!(placements.contains(&arr2(&[[true, false], [false, true],])));
+    }
+
+    #[test]
+    fn test_place_on_all_positions_smaller_parent() {
+        let parent = arr2(&[[false, false], [false, false]]);
+        let child = arr2(&[[true, false, true], [false, true, false]]);
+        let placements = place_on_all_positions(&parent, &child);
+        assert_eq!(placements.len(), 0);
+    }
+
+    #[test]
+    fn test_place_on_all_positions_with_blocking() {
+        let parent = arr2(&[
+            [false, false, false],
+            [false, true, false],
+            [false, false, false],
+        ]);
+        let child = arr2(&[[true, false], [false, true]]);
+        let placements = place_on_all_positions(&parent, &child);
+        assert_eq!(placements.len(), 2);
+        assert!(placements.contains(&arr2(&[
+            [false, true, false],
+            [false, true, true],
+            [false, false, false],
+        ])));
+        assert!(placements.contains(&arr2(&[
+            [false, false, false],
+            [true, true, false],
+            [false, true, false],
+        ])));
+    }
+
+    #[test]
+    fn test_remove_parent() {
+        let parent = arr2(&[
+            [true, false, true],
+            [false, true, false],
+            [true, true, true],
+        ]);
+        let mut child = arr2(&[[true, true, true], [true, true, true], [true, true, true]]);
+        remove_parent(&parent, &mut child);
+        let expected = arr2(&[
+            [false, true, false],
+            [true, false, true],
+            [false, false, false],
+        ]);
+        assert_eq!(expected, child);
+    }
+
+    #[test]
+    fn test_remove_parent_smaller_parent() {
+        let parent = arr2(&[[true, false], [false, true]]);
+        let mut child = arr2(&[[true, true, true], [true, true, true], [true, true, true]]);
+        remove_parent(&parent, &mut child);
+        let expected = arr2(&[[false, true, true], [true, false, true], [true, true, true]]);
+        assert_eq!(expected, child);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_remove_parent_bigger_parent_panic() {
+        let parent = arr2(&[
+            [true, false, true],
+            [false, true, false],
+            [true, true, true],
+        ]);
+        let mut child = arr2(&[[true, true], [true, true]]);
+        remove_parent(&parent, &mut child);
     }
 }
