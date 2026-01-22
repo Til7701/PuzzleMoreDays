@@ -11,15 +11,8 @@
                 <child type="top">
                     <object class="AdwHeaderBar">
                         <child type="start">
-                            <object class="GtkDropDown" id="puzzle_selection">
-                                <property name="model">
-                                    <object class="GtkStringList">
-                                        <items>
-                                            <item translatable="yes">Default</item>
-                                            <item translatable="yes">Year</item>
-                                        </items>
-                                    </object>
-                                </property>
+                            <object class="GtkButton" id="puzzle_selection">
+                                <property name="label" translatable="yes">Select Puzzle</property>
                             </object>
                         </child>
                         <child type="start">

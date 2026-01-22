@@ -1,15 +1,16 @@
 use crate::presenter::puzzle_area::PuzzleAreaPresenter;
+use crate::solver;
 use crate::solver::{interrupt_solver_call, is_solved};
 use crate::state::{get_state, SolverState};
 use crate::view::{create_puzzle_info, create_solved_dialog, create_target_selection_dialog};
 use crate::window::PuzzlemoredaysWindow;
-use crate::{puzzle, solver};
 use adw::glib;
 use adw::prelude::{ActionRowExt, AdwDialogExt, AlertDialogExt};
 use gtk::prelude::{ButtonExt, WidgetExt};
 use gtk::Settings;
 use humantime::format_duration;
 use log::debug;
+use puzzle_config::BoardConfig;
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -29,7 +30,7 @@ impl MainPresenter {
     }
 
     pub fn setup(&self, window: &PuzzlemoredaysWindow) {
-        self.update_target_selection_button();
+        self.setup_puzzle_type();
         self.window.replace(Some(window.clone()));
         let puzzle_area_presenter = self.puzzle_area_presenter.borrow();
         puzzle_area_presenter.set_view(window.grid());
@@ -39,31 +40,30 @@ impl MainPresenter {
         }));
 
         let puzzle_selection = window.puzzle_selection();
-        puzzle_selection.set_selected(0);
 
-        puzzle_selection.connect_selected_notify({
-            let puzzle_area_presenter = puzzle_area_presenter.clone();
-            let self_clone = self.clone();
-            move |dropdown| {
-                let index = dropdown.selected();
-                let puzzle_config = match index {
-                    0 => puzzle::get_default_config(),
-                    1 => puzzle::get_year_config(),
-                    _ => panic!("Unknown puzzle selection index: {}", index),
-                };
-                let mut state = get_state();
-                state.target_selection = puzzle_config.default_target.clone();
-                state.puzzle_config = puzzle_config;
-                state.solver_state = SolverState::Initial;
-                self_clone.set_solver_status(&SolverState::Initial);
-                drop(state);
-
-                puzzle_area_presenter.setup_puzzle_config_from_state(Rc::new({
-                    let self_clone = self_clone.clone();
-                    move || self_clone.calculate_solvability_if_enabled()
-                }));
-            }
-        });
+        // puzzle_selection.connect_selected_notify({
+        //     let puzzle_area_presenter = puzzle_area_presenter.clone();
+        //     let self_clone = self.clone();
+        //     move |dropdown| {
+        //         let index = dropdown.selected();
+        //         let puzzle_config = match index {
+        //             0 => puzzle::get_default_config(),
+        //             1 => puzzle::get_year_config(),
+        //             _ => panic!("Unknown puzzle selection index: {}", index),
+        //         };
+        //         let mut state = get_state();
+        //         state.target_selection = puzzle_config.default_target.clone();
+        //         state.puzzle_config = puzzle_config;
+        //         state.solver_state = SolverState::Initial;
+        //         self_clone.set_solver_status(&SolverState::Initial);
+        //         drop(state);
+        //
+        //         puzzle_area_presenter.setup_puzzle_config_from_state(Rc::new({
+        //             let self_clone = self_clone.clone();
+        //             move || self_clone.calculate_solvability_if_enabled()
+        //         }));
+        //     }
+        // });
 
         let puzzle_info_button = window.puzzle_info_button();
         puzzle_info_button.connect_clicked({
@@ -115,7 +115,28 @@ impl MainPresenter {
 
     pub fn update_layout(&self) {
         self.puzzle_area_presenter.borrow().update_layout();
+        self.setup_puzzle_type();
+    }
+
+    fn setup_puzzle_type(&self) {
         self.update_target_selection_button();
+        let state = get_state();
+        let puzzle_config = &state.puzzle_config;
+        let board_config = puzzle_config.board_config();
+        match board_config {
+            BoardConfig::Simple { .. } => {
+                if let Some(window) = self.window.borrow().as_ref() {
+                    window.target_selection_button().set_visible(false);
+                    window.solver_status().set_visible(false);
+                }
+            }
+            BoardConfig::Area { .. } => {
+                if let Some(window) = self.window.borrow().as_ref() {
+                    window.target_selection_button().set_visible(true);
+                    window.solver_status().set_visible(true);
+                }
+            }
+        }
     }
 
     fn update_target_selection_button(&self) {
@@ -125,7 +146,11 @@ impl MainPresenter {
             match target_selection {
                 Some(target) => {
                     let puzzle_config = &state.puzzle_config;
-                    let text = puzzle_config.format_target(target);
+                    let board_config = puzzle_config.board_config();
+                    let text = match board_config {
+                        BoardConfig::Simple { .. } => "",
+                        BoardConfig::Area { .. } => &*board_config.format_target(target),
+                    };
                     window.target_selection_button().set_label(&text);
                 }
                 None => {

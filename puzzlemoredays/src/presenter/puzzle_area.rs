@@ -2,13 +2,12 @@ use crate::offset::{CellOffset, PixelOffset};
 use crate::presenter::board::BoardPresenter;
 use crate::presenter::puzzle_area::HighlightMode::{OutOfBounds, Overlapping};
 use crate::presenter::tile::TilePresenter;
-use crate::puzzle::config::TileConfig;
-use crate::puzzle::PuzzleConfig;
 use crate::puzzle_state::{Cell, PuzzleState, UnusedTile};
 use crate::state::get_state;
 use crate::view::{BoardView, TileView};
 use gtk::prelude::{FixedExt, WidgetExt};
 use gtk::{Fixed, Widget};
+use puzzle_config::{PuzzleConfig, TileConfig};
 use std::cell::RefCell;
 use std::mem::take;
 use std::rc::Rc;
@@ -79,10 +78,11 @@ impl PuzzleAreaPresenter {
         self.board_presenter.setup(puzzle_config);
 
         let start_positions =
-            self.calculate_tile_start_positions(&puzzle_config.tiles, puzzle_config);
-        for (i, tile) in puzzle_config.tiles.iter().enumerate() {
+            self.calculate_tile_start_positions(&puzzle_config.tiles(), puzzle_config);
+        for (i, tile) in puzzle_config.tiles().iter().enumerate() {
             self.tile_presenter.setup(
                 tile,
+                i,
                 &start_positions[i],
                 Rc::new({
                     let self_clone = self.clone();
@@ -114,7 +114,7 @@ impl PuzzleAreaPresenter {
 
         // Left
         if tiles.len() != positions.len() {
-            let end = puzzle_config.board_config.layout.dim().1 as i32;
+            let end = puzzle_config.board_config().layout().dim().1 as i32;
             let mut next_pos = CellOffset(1, 1);
             let mut next_tile_index = positions.len();
             while end > next_pos.1 {
@@ -123,16 +123,16 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.1 += tile.base.dim().1 as i32 + 1;
+                next_pos.1 += tile.base().dim().1 as i32 + 1;
                 next_tile_index += 1;
             }
         }
 
         // Right
         if tiles.len() != positions.len() {
-            let end = puzzle_config.board_config.layout.dim().1 as i32;
+            let end = puzzle_config.board_config().layout().dim().1 as i32;
             let mut next_pos = grid_config.board_offset_cells
-                + CellOffset(puzzle_config.board_config.layout.dim().0 as i32 + 1, 0);
+                + CellOffset(puzzle_config.board_config().layout().dim().0 as i32 + 1, 0);
             let mut next_tile_index = positions.len();
             while end > next_pos.1 {
                 positions.push(next_pos.clone());
@@ -140,7 +140,7 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.1 += tile.base.dim().1 as i32 + 1;
+                next_pos.1 += tile.base().dim().1 as i32 + 1;
                 next_tile_index += 1;
             }
         }
@@ -148,8 +148,9 @@ impl PuzzleAreaPresenter {
         // Bottom
         if tiles.len() != positions.len() {
             let end = grid_config.board_offset_cells.0 * 2
-                + puzzle_config.board_config.layout.dim().0 as i32;
-            let mut next_pos = CellOffset(1, 2 + puzzle_config.board_config.layout.dim().1 as i32);
+                + puzzle_config.board_config().layout().dim().0 as i32;
+            let mut next_pos =
+                CellOffset(1, 2 + puzzle_config.board_config().layout().dim().1 as i32);
             let mut next_tile_index = positions.len();
             while end > next_pos.0 {
                 positions.push(next_pos.clone());
@@ -157,7 +158,7 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.0 += tile.base.dim().0 as i32 + 1;
+                next_pos.0 += tile.base().dim().0 as i32 + 1;
                 next_tile_index += 1;
             }
         }
@@ -165,9 +166,11 @@ impl PuzzleAreaPresenter {
         // Buttom second row
         if tiles.len() != positions.len() {
             let end = grid_config.board_offset_cells.0 * 2
-                + puzzle_config.board_config.layout.dim().0 as i32;
-            let mut next_pos =
-                CellOffset(1, 2 + 4 + puzzle_config.board_config.layout.dim().1 as i32);
+                + puzzle_config.board_config().layout().dim().0 as i32;
+            let mut next_pos = CellOffset(
+                1,
+                2 + 4 + puzzle_config.board_config().layout().dim().1 as i32,
+            );
             let mut next_tile_index = positions.len();
             while end > next_pos.0 {
                 positions.push(next_pos.clone());
@@ -175,7 +178,7 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.0 += tile.base.dim().0 as i32 + 1;
+                next_pos.0 += tile.base().dim().0 as i32 + 1;
                 next_tile_index += 1;
             }
         }

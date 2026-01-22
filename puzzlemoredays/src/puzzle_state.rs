@@ -1,8 +1,7 @@
 use crate::offset::CellOffset;
-use crate::puzzle::config::Target;
-use crate::puzzle::PuzzleConfig;
 use gtk::Widget;
 use ndarray::Array2;
+use puzzle_config::{PuzzleConfig, Target};
 use std::collections::HashSet;
 
 /// Represents data associated with a cell in the puzzle grid.
@@ -55,8 +54,8 @@ pub struct PuzzleState {
 
 impl PuzzleState {
     pub fn new(puzzle_config: &PuzzleConfig, target_selection: &Option<Target>) -> Self {
-        let board_config = &puzzle_config.board_config;
-        let layout = &board_config.layout;
+        let board_config = &puzzle_config.board_config();
+        let layout = &board_config.layout();
 
         let dim = layout.dim();
         // Add border to have a zone where tiles are not allowed to be placed to indicate out-of-bounds
@@ -91,15 +90,15 @@ impl PuzzleState {
     fn is_adjacent_to_board(position: (i32, i32), puzzle_config: &PuzzleConfig) -> bool {
         const DELTAS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
         let this_is_on_board = puzzle_config
-            .board_config
-            .layout
+            .board_config()
+            .layout()
             .get::<(usize, usize)>((position.0 as usize, position.1 as usize).into())
             .unwrap_or(&false);
         for (dr, dc) in DELTAS.iter() {
             let neighbor_pos = ((position.0 + dr) as usize, (position.1 + dc) as usize);
             if let Some(neighbour_on_board) = puzzle_config
-                .board_config
-                .layout
+                .board_config()
+                .layout()
                 .get::<(usize, usize)>(neighbor_pos.into())
             {
                 if !this_is_on_board && *neighbour_on_board {

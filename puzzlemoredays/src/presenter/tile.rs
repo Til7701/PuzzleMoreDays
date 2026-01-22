@@ -1,12 +1,12 @@
 use crate::offset::{CellOffset, PixelOffset};
 use crate::presenter::puzzle_area::PuzzleAreaData;
-use crate::puzzle::config::TileConfig;
 use crate::view::TileView;
 use adw::gdk::{BUTTON_MIDDLE, BUTTON_SECONDARY};
 use gtk::prelude::{
     Cast, EventControllerExt, FixedExt, GestureDragExt, GestureSingleExt, WidgetExt,
 };
 use gtk::{EventController, GestureClick, GestureDrag, PropagationPhase, Widget};
+use puzzle_config::TileConfig;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -23,10 +23,11 @@ impl TilePresenter {
     pub fn setup(
         &self,
         tile: &TileConfig,
+        tile_id: usize,
         start_position_cell: &CellOffset,
         on_position_changed: Rc<dyn Fn()>,
     ) {
-        let mut tile_view = TileView::new(tile.id, tile.base.clone());
+        let mut tile_view = TileView::new(tile_id, tile.base().clone());
 
         let start_position = {
             let data = self.data.borrow();
@@ -37,9 +38,9 @@ impl TilePresenter {
         tile_view.position_cells = Some(*start_position_cell);
 
         for draggable in tile_view.draggables.iter() {
-            self.setup_drag_and_drop(tile.id as usize, &draggable, on_position_changed.clone());
+            self.setup_drag_and_drop(tile_id as usize, &draggable, on_position_changed.clone());
             self.setup_tile_rotation_and_flip(
-                tile.id as usize,
+                tile_id as usize,
                 &draggable,
                 on_position_changed.clone(),
             );

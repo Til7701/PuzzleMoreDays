@@ -13,7 +13,7 @@ ndarray = { workspace = true }
 once_cell = { workspace = true }
 log = { workspace = true }
 simple_logger = { workspace = true }
-time = { workspace = true }
 humantime = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
+regex = { workspace = true }

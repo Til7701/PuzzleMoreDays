@@ -2,13 +2,12 @@ use crate::offset::{CellOffset, PixelOffset};
 use crate::presenter::puzzle_area::{
     PuzzleAreaData, MIN_CELLS_TO_THE_SIDES_OF_BOARD, WINDOW_TO_BOARD_RATIO,
 };
-use crate::puzzle::config::TargetIndex;
-use crate::puzzle::PuzzleConfig;
 use crate::state::get_state;
 use crate::view::BoardView;
 use adw::prelude::Cast;
 use gtk::prelude::{FixedExt, FrameExt, GridExt, WidgetExt};
 use gtk::{Frame, Label, Widget};
+use puzzle_config::{PuzzleConfig, TargetIndex};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -26,22 +25,22 @@ impl BoardPresenter {
 
     pub fn setup(&self, puzzle_config: &PuzzleConfig) {
         let board_view =
-            BoardView::new(&puzzle_config.board_config).expect("Failed to initialize board view");
+            BoardView::new(&puzzle_config.board_config()).expect("Failed to initialize board view");
         let widget = board_view.parent.clone().upcast::<Widget>();
         let mut data = self.data.borrow_mut();
         data.add_to_fixed(&widget, &PixelOffset::default());
 
-        let mut cells_to_the_side = (((puzzle_config.board_config.layout.dim().0 as f64
+        let mut cells_to_the_side = (((puzzle_config.board_config().layout().dim().0 as f64
             * WINDOW_TO_BOARD_RATIO)
-            - puzzle_config.board_config.layout.dim().0 as f64)
+            - puzzle_config.board_config().layout().dim().0 as f64)
             / 2.0) as u32;
         if cells_to_the_side < MIN_CELLS_TO_THE_SIDES_OF_BOARD {
             cells_to_the_side = MIN_CELLS_TO_THE_SIDES_OF_BOARD;
         }
         let grid_h_cell_count =
-            puzzle_config.board_config.layout.dim().0 as u32 + (cells_to_the_side * 2);
+            puzzle_config.board_config().layout().dim().0 as u32 + (cells_to_the_side * 2);
         let board_offset_horizontal_cells =
-            ((grid_h_cell_count - puzzle_config.board_config.layout.dim().0 as u32) / 2) as i32;
+            ((grid_h_cell_count - puzzle_config.board_config().layout().dim().0 as u32) / 2) as i32;
 
         let grid_config = &mut data.grid_config;
         grid_config.grid_h_cell_count = grid_h_cell_count;

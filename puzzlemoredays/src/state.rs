@@ -1,7 +1,7 @@
-use crate::puzzle::config::Target;
-use crate::puzzle::PuzzleConfig;
+use crate::puzzles;
 use crate::solver::SolverCallId;
 use once_cell::sync::Lazy;
+use puzzle_config::{PuzzleConfig, Target};
 use std::backtrace::Backtrace;
 use std::mem;
 use std::ops::DerefMut;
@@ -49,8 +49,8 @@ pub fn get_state() -> MutexGuard<'static, State> {
 
 impl Default for State {
     fn default() -> Self {
-        let puzzle_config = PuzzleConfig::default();
-        let default_target = puzzle_config.default_target.clone();
+        let puzzle_config = puzzles::default_puzzle();
+        let default_target = puzzle_config.board_config().default_target();
         State {
             puzzle_config,
             target_selection: default_target,

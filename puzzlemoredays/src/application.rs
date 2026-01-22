@@ -23,14 +23,13 @@ use adw::gdk::Display;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
-use gtk::{
-    gio, glib, CssProvider, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION,
-};
+use gtk::{gio, glib, CssProvider, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION};
 use std::fmt::Debug;
 
 mod imp {
     use super::*;
     use crate::presenter::main::MainPresenter;
+    use crate::puzzles;
     use crate::state::take_runtime;
     use crate::window::PuzzlemoredaysWindow;
     use simple_logger::SimpleLogger;
@@ -71,6 +70,7 @@ mod imp {
             });
 
             application.load_css();
+            puzzles::init();
             application.setup(
                 &window
                     .downcast_ref::<PuzzlemoredaysWindow>()

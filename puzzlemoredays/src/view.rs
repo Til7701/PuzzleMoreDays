@@ -1,6 +1,4 @@
 use crate::offset::{CellOffset, PixelOffset};
-use crate::puzzle::config::{AreaConfig, BoardConfig, Target, TargetIndex};
-use crate::puzzle::PuzzleConfig;
 use crate::state::{get_state, SolverState};
 use adw::prelude::{AlertDialogExt, AlertDialogExtManual, PreferencesGroupExt};
 use adw::prelude::{Cast, PreferencesDialogExt};
@@ -12,6 +10,7 @@ use adw::{
 use gtk::prelude::{FrameExt, GridExt};
 use gtk::{Frame, Grid, Label, StringList, Widget};
 use ndarray::Array2;
+use puzzle_config::{AreaConfig, BoardConfig, PuzzleConfig, Target, TargetIndex};
 
 #[derive(Debug, Clone)]
 pub struct TileView {
@@ -23,7 +22,7 @@ pub struct TileView {
 }
 
 impl TileView {
-    pub fn new(id: i32, base: Array2<bool>) -> Self {
+    pub fn new(id: usize, base: Array2<bool>) -> Self {
         let mut draggables: Vec<Widget> = Vec::new();
         let mut elements_with_offset: Vec<(Widget, PixelOffset)> = Vec::new();
 
@@ -59,17 +58,7 @@ pub struct BoardView {
 
 impl BoardView {
     pub fn new(board_config: &BoardConfig) -> Result<BoardView, String> {
-        let board_layout = &board_config.layout;
-        let board_area_indices = &board_config.area_indices;
-        let display_values = &board_config.display_values;
-        if board_layout.dim() != board_area_indices.dim()
-            || board_layout.dim() != display_values.dim()
-        {
-            return Err(
-                "Dimensions of board_layout, meaning_areas, and meaning_values must match"
-                    .to_string(),
-            );
-        }
+        let board_layout = &board_config.layout();
 
         let grid = Grid::builder()
             .css_classes(vec!["board-grid".to_string()])
@@ -81,24 +70,36 @@ impl BoardView {
 
         for ((x, y), value) in board_layout.indexed_iter() {
             if *value {
-                let css_classes: Vec<String> = vec![
-                    "board-cell".to_string(),
-                    format!("board-cell-{}", board_area_indices[[x, y]]),
-                ];
-                let cell = Frame::builder().css_classes(css_classes).build();
+                let cell = match board_config {
+                    BoardConfig::Simple { .. } => {
+                        let css_classes: Vec<String> =
+                            vec!["board-cell".to_string(), "board-cell-simple".to_string()];
+                        let cell = Frame::builder().css_classes(css_classes).build();
 
-                if board_area_indices[[x, y]] != -1 {
-                    let label = Label::new(Some(&display_values[[x, y]]));
-                    cell.set_child(Some(&label));
-                } else {
-                    return Err(format!(
-                        "Meaning area is -1 while board layout is true at position ({}, {})",
-                        x, y,
-                    ));
-                }
+                        let label = Label::new(Some(format!("({}, {})", x, y).as_str()));
+                        cell.set_child(Some(&label));
+                        cell
+                    }
+                    BoardConfig::Area {
+                        area_indices,
+                        display_values,
+                        ..
+                    } => {
+                        let css_classes: Vec<String> = vec![
+                            "board-cell".to_string(),
+                            format!("board-cell-{}", area_indices[[x, y]]),
+                        ];
+                        let cell = Frame::builder().css_classes(css_classes).build();
+
+                        let label = Label::new(Some(&display_values[[x, y]]));
+                        cell.set_child(Some(&label));
+                        cell
+                    }
+                };
 
                 grid.attach(&cell, x as i32, y as i32, 1, 1);
                 elements.push(cell.upcast::<Widget>());
+                dbg!(&elements);
             }
         }
 
@@ -129,57 +130,26 @@ fn create_content_for_puzzle_info(puzzle_config: &PuzzleConfig) -> PreferencesPa
         .title("General Information")
         .build();
 
-    let name = create_row("Puzzle Name", &puzzle_config.name);
+    let name = create_row("Puzzle Name", &puzzle_config.name());
     general_group.add(&name);
 
     let board_dimensions = create_row(
         "Board Dimensions",
         &format!(
             "{} x {}",
-            puzzle_config.board_config.layout.nrows(),
-            puzzle_config.board_config.layout.ncols()
+            puzzle_config.board_config().layout().nrows(),
+            puzzle_config.board_config().layout().ncols()
         ),
     );
     general_group.add(&board_dimensions);
 
-    let tile_count = create_row("Number of Tiles", &format!("{}", puzzle_config.tiles.len()));
+    let tile_count = create_row(
+        "Number of Tiles",
+        &format!("{}", puzzle_config.tiles().len()),
+    );
     general_group.add(&tile_count);
 
     page.add(&general_group);
-
-    if let Some(stats) = &puzzle_config.solution_statistics {
-        let solution_statistics_group = PreferencesGroup::builder()
-            .title("Solution Statistics")
-            .build();
-        let min_per_meaning = create_row(
-            "Minimum Solutions per Day",
-            &format!("{}", stats.min_per_target),
-        );
-        solution_statistics_group.add(&min_per_meaning);
-
-        let max_per_meaning = create_row(
-            "Maximum Solutions per Day",
-            &format!("{}", stats.max_per_target),
-        );
-        solution_statistics_group.add(&max_per_meaning);
-
-        let average_per_meaning = create_row(
-            "Average Solutions per Day",
-            &format!("{:.2}", stats.average_per_target),
-        );
-        solution_statistics_group.add(&average_per_meaning);
-
-        let mean_per_meaning = create_row(
-            "Mean Solutions per Day",
-            &format!("{}", stats.mean_per_target),
-        );
-        solution_statistics_group.add(&mean_per_meaning);
-
-        let total_solutions = create_row("Total Solutions", &format!("{}", stats.total_solutions));
-        solution_statistics_group.add(&total_solutions);
-
-        page.add(&solution_statistics_group);
-    }
 
     page
 }
@@ -209,10 +179,15 @@ pub fn create_target_selection_dialog() -> AlertDialog {
     let state = get_state();
     let puzzle_config = &state.puzzle_config;
     let current_selection = &state.target_selection;
-    let area_configs = &puzzle_config.board_config.area_configs;
+    let (area_configs, area_count) = match &puzzle_config.board_config() {
+        BoardConfig::Area { area_configs, .. } => {
+            (area_configs, puzzle_config.board_config().area_count())
+        }
+        _ => return dialog,
+    };
     let mut area_items: Vec<Vec<TargetIndexListItem>> = Vec::new();
     let mut dropdowns: Vec<ComboRow> = Vec::new();
-    for area_index in 0..puzzle_config.area_count() {
+    for area_index in 0..area_count {
         let (items, dropdown) = create_dropdown_for_area(
             &content,
             puzzle_config,
@@ -288,6 +263,7 @@ fn create_dropdown_for_area(
     area_index: usize,
 ) -> (Vec<TargetIndexListItem>, ComboRow) {
     let mut items: Vec<TargetIndexListItem> = puzzle_config
+        .board_config()
         .get_display_values_for_area(area_index as i32)
         .iter()
         .map(|(display_value, target_index)| TargetIndexListItem {
@@ -295,22 +271,22 @@ fn create_dropdown_for_area(
             target_index: target_index.clone(),
         })
         .collect();
-    items.sort_by(|a, b| {
-        let first = puzzle_config
-            .board_config
-            .value_order
-            .get((a.target_index.0, a.target_index.1))
-            .cloned()
-            .unwrap_or(i32::MAX);
-        let second = puzzle_config
-            .board_config
-            .value_order
-            .get((b.target_index.0, b.target_index.1))
-            .cloned()
-            .unwrap_or(i32::MAX);
-
-        first.cmp(&second)
-    });
+    // items.sort_by(|a, b| {
+    //     let first = puzzle_config
+    //         .board_config()
+    //         .value_order()
+    //         .get((a.target_index.0, a.target_index.1))
+    //         .cloned()
+    //         .unwrap_or(i32::MAX);
+    //     let second = puzzle_config
+    //         .board_config()
+    //         .value_order()
+    //         .get((b.target_index.0, b.target_index.1))
+    //         .cloned()
+    //         .unwrap_or(i32::MAX);
+    //
+    //     first.cmp(&second)
+    // });
 
     let string_list = StringList::new(&[]);
     for it in &items {
@@ -318,7 +294,7 @@ fn create_dropdown_for_area(
     }
 
     let dropdown = ComboRow::builder()
-        .title(&area_configs[area_index].name)
+        .title(area_configs[area_index].name())
         .model(&string_list)
         .build();
 

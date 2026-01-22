@@ -73,6 +73,10 @@
     border-radius: 0;
 }
 
+.board-cell-simple {
+    background-color: red;
+}
+
 @media (prefers-color-scheme: dark) {
     .board-cell-0 {
         background-color: #333333;
