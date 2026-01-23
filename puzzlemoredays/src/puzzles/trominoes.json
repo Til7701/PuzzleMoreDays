@@ -3,6 +3,15 @@
   "name": "Trominoes",
   "author": "Puzzle More Days",
   "description": "Fill the board with trominoes.",
+  "custom_boards": {
+    "3x3": {
+      "layout": [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ]
+    }
+  },
   "puzzles": [
     {
       "name": "Simple",
@@ -11,13 +20,7 @@
         "L3",
         "L3"
       ],
-      "board": {
-        "layout": [
-          [0, 0, 0],
-          [0, 0, 0],
-          [0, 0, 0]
-        ]
-      }
+      "board": "3x3"
     }
   ]
 }

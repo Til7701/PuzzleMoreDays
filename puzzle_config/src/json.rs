@@ -15,6 +15,7 @@ struct PuzzleCollection {
     author: String,
     /// Custom tiles to override or extend predefined tiles.
     custom_tiles: Option<HashMap<String, Tile>>,
+    custom_boards: Option<HashMap<String, Board>>,
     puzzles: Vec<Puzzle>,
 }
 
@@ -42,6 +43,7 @@ enum Tile {
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum Board {
+    Ref(String),
     SimpleBoard {
         layout: Vec<Vec<i8>>,
     },
@@ -109,6 +111,14 @@ fn convert(puzzle_collection: PuzzleCollection) -> Result<PuzzleConfigCollection
         }
     }
 
+    let mut custom_boards = HashMap::new();
+    if let Some(boards) = puzzle_collection.custom_boards {
+        for (name, board) in boards {
+            let converted_board = convert_board(board, &custom_boards)?;
+            custom_boards.insert(name.clone(), converted_board);
+        }
+    }
+
     let mut puzzle_configs = Vec::new();
     for puzzle in puzzle_collection.puzzles {
         let mut tiles = Vec::new();
@@ -118,7 +128,7 @@ fn convert(puzzle_collection: PuzzleCollection) -> Result<PuzzleConfigCollection
             tiles.push(converted_tile);
         }
 
-        let board_config = convert_board(puzzle.board)?;
+        let board_config = convert_board(puzzle.board, &custom_boards)?;
         let puzzle_config = PuzzleConfig::new(
             puzzle.name,
             puzzle.description,
@@ -181,8 +191,18 @@ fn convert_tile(
     }
 }
 
-fn convert_board(board: Board) -> Result<BoardConfig, ReadError> {
+fn convert_board(
+    board: Board,
+    custom_boards: &HashMap<String, BoardConfig>,
+) -> Result<BoardConfig, ReadError> {
     match { board } {
+        Board::Ref(name) => {
+            if let Some(custom_board) = custom_boards.get(&name) {
+                Ok(custom_board.clone())
+            } else {
+                Err(ReadError::UnknownCustomBoard { name })
+            }
+        }
         Board::SimpleBoard { layout } => {
             let height = layout.len();
             if height == 0 {

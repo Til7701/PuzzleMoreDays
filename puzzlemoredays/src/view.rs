@@ -99,7 +99,6 @@ impl BoardView {
 
                 grid.attach(&cell, x as i32, y as i32, 1, 1);
                 elements.push(cell.upcast::<Widget>());
-                dbg!(&elements);
             }
         }
 

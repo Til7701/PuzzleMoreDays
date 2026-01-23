@@ -115,7 +115,6 @@ impl BoardPresenter {
                 .chain(0..1)
                 .max()
                 .unwrap_or(0);
-            dbg!(max_elements_width);
             max_elements_width
         } else {
             0
