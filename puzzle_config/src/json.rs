@@ -45,7 +45,7 @@ enum Tile {
 enum Board {
     Ref(String),
     SimpleBoard {
-        layout: Vec<Vec<i8>>,
+        layout: Vec<Vec<u8>>,
     },
     AreaBoard {
         area_layout: Vec<Vec<i32>>,
