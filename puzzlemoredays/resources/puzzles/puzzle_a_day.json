@@ -73,6 +73,13 @@
           }
         ],
         "target_template": "{0} of {1}"
+      },
+      "additional_info": {
+        "Minimum Solutions per Day": "7",
+        "Maximum Solutions per Day": "216",
+        "Average Solutions per Day": "67.3682795698925",
+        "Mean Solutions per Day": "40",
+        "Total Solutions": "25061"
       }
     },
     {
@@ -165,6 +172,13 @@
           }
         ],
         "target_template": "{0} of {1} {2}{3}"
+      },
+      "additional_info": {
+        "Minimum Solutions per Day": "1292",
+        "Maximum Solutions per Day": "469467",
+        "Average Solutions per Day": "37393.1052150538",
+        "Mean Solutions per Day": "103348",
+        "Total Solutions": "1391023514"
       }
     }
   ]

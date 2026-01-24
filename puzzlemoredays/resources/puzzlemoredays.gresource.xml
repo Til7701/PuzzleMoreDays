@@ -7,6 +7,7 @@
         <file preprocess="xml-stripblanks" alias="how-to-play-dialog.ui">ui/how-to-play-dialog.ui</file>
         <file preprocess="xml-stripblanks" alias="puzzle-collection-item.ui">ui/puzzle-collection-item.ui</file>
         <file preprocess="xml-stripblanks" alias="puzzle-selection-item.ui">ui/puzzle-selection-item.ui</file>
+        <file preprocess="xml-stripblanks" alias="puzzle-info-dialog.ui">ui/puzzle-info-dialog.ui</file>
         <file alias="style.css">css/style.css</file>
         <file>puzzles/puzzle_a_day.json</file>
         <file>puzzles/puzzle_more_days.json</file>

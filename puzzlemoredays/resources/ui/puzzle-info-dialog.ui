@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <object class="AdwPreferencesDialog" id="puzzle_info_dialog">
+        <property name="title">Solver</property>
+        <child>
+            <object class="AdwPreferencesPage">
+                <property name="title">Puzzle Information</property>
+                <child>
+                    <object class="AdwPreferencesGroup" id="general_info_group">
+                        <property name="title">General Information</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="AdwPreferencesGroup" id="additional_info_group">
+                        <property name="title">Additional Information</property>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </object>
+</interface>
