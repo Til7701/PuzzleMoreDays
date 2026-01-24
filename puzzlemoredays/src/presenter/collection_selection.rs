@@ -1,18 +1,24 @@
 use crate::application::PuzzlemoredaysApplication;
 use crate::global::state::{get_state, get_state_mut};
 use crate::presenter::navigation::NavigationPresenter;
-use crate::puzzles::get_puzzle_collection_store;
+use crate::puzzles::{add_community_collection_from_string, get_puzzle_collection_store};
 use crate::window::PuzzlemoredaysWindow;
-use adw::glib::{Variant, VariantTy};
-use adw::prelude::{ActionMapExtManual, ActionRowExt, PreferencesRowExt};
-use adw::{gio, ButtonRow};
-use gtk::prelude::{ActionableExt, BoxExt};
-use gtk::ListBox;
-use log::error;
-use puzzle_config::PuzzleConfigCollection;
+use adw::gio::{Cancellable, File};
+use adw::glib::{Error, Variant, VariantTy};
+use adw::prelude::{
+    ActionMapExtManual, ActionRowExt, AdwDialogExt, AlertDialogExt, FileExt, FileExtManual,
+    PreferencesRowExt,
+};
+use adw::{gio, AlertDialog, ButtonRow, ResponseAppearance};
+use gtk::prelude::{ActionableExt, BoxExt, DialogExt, GtkWindowExt};
+use gtk::{Dialog, ListBox};
+use log::{debug, error};
+use puzzle_config::ReadError::FileReadError;
+use puzzle_config::{PuzzleConfigCollection, ReadError};
 
 #[derive(Clone)]
 pub struct CollectionSelectionPresenter {
+    window: PuzzlemoredaysWindow,
     navigation: NavigationPresenter,
     core_collection_list: ListBox,
     community_collection_list: ListBox,
@@ -22,6 +28,7 @@ pub struct CollectionSelectionPresenter {
 impl CollectionSelectionPresenter {
     pub fn new(window: &PuzzlemoredaysWindow, navigation: NavigationPresenter) -> Self {
         CollectionSelectionPresenter {
+            window: window.clone(),
             navigation,
             core_collection_list: window.core_collection_list(),
             community_collection_list: window.community_collection_list(),
@@ -45,7 +52,7 @@ impl CollectionSelectionPresenter {
         let load_collection_action = gio::ActionEntry::builder("load_collection")
             .activate({
                 let self_clone = self.clone();
-                move |_, _, _| self_clone.load_collection()
+                move |_, _, _| self_clone.show_load_collection_dialog()
             })
             .build();
         app.add_action_entries([collection_item_activated, load_collection_action]);
@@ -87,9 +94,99 @@ impl CollectionSelectionPresenter {
             .append(&self.load_collection_button_row);
     }
 
-    fn load_collection(&self) {
-        todo!();
-        self.update_community_collections();
+    fn show_load_collection_dialog(&self) {
+        let dialog = gtk::FileDialog::builder().build();
+        dialog.open(Some(&self.window), None::<&Cancellable>, {
+            let self_clone = self.clone();
+            move |result| match result {
+                Ok(file) => self_clone.load_collection(file),
+                Err(error) => {
+                    debug!("File dialog error: {:?}", error);
+                }
+            }
+        });
+    }
+
+    fn load_collection(&self, file: File) {
+        let result = self.try_load_collection(file);
+        match result {
+            Ok(()) => {
+                debug!("Successfully loaded collection.");
+            }
+            Err(e) => {
+                let message: String = match &e {
+                    FileReadError(e) => e.clone(),
+                    ReadError::MissingVersion => {
+                        "The `config_version` field is missing.".to_string()
+                    }
+                    ReadError::MalformedVersion => {
+                        "The `config_version` field is malformed.".to_string()
+                    }
+                    ReadError::UnsupportedVersion => {
+                        "The collection version is not supported. Only version `1` is supported."
+                            .to_string()
+                    }
+                    ReadError::JsonError(e) => {
+                        format!("The collection file could not be parsed correctly: {}", e)
+                    }
+                    ReadError::UnknownPredefinedTile { tile_name, name } => {
+                        format!(
+                            "The collection file contains an unknown predefined tile '{}' in puzzle '{}'.",
+                            tile_name, name
+                        )
+                    }
+                    ReadError::UnknownCustomBoard {
+                        puzzle_name,
+                        board_name,
+                    } => {
+                        format!(
+                            "The collection file contains an unknown custom board '{}' in puzzle '{}'.",
+                            board_name, puzzle_name
+                        )
+                    }
+                    ReadError::TileWidthOrHeightCannotBeZero { tile_name } => {
+                        format!(
+                            "The collection file contains a tile '{}' with zero width or height.",
+                            tile_name
+                        )
+                    }
+                    ReadError::BoardWidthOrHeightCannotBeZero => {
+                        "The collection file contains a board with zero width or height."
+                            .to_string()
+                    }
+                };
+                self.show_load_collection_error(message);
+            }
+        }
+    }
+
+    fn try_load_collection(&self, file: File) -> Result<(), ReadError> {
+        match file.load_contents(None::<&Cancellable>) {
+            Ok((bytes, _etag)) => match std::str::from_utf8(bytes.as_ref()) {
+                Ok(text) => {
+                    let content: String = text.to_owned();
+                    add_community_collection_from_string(&content)?;
+                    self.update_community_collections();
+                    Ok(())
+                }
+                Err(e) => Err(FileReadError(format!("{}", e))),
+            },
+            Err(e) => Err(FileReadError(format!("{}", e))),
+        }
+    }
+
+    fn show_load_collection_error(&self, message: String) {
+        let dialog = AlertDialog::builder()
+            .heading("Error")
+            .body(message)
+            .build();
+
+        let ok_id = "ok";
+        dialog.add_response(ok_id, "OK");
+        dialog.set_default_response(Some(ok_id));
+        dialog.set_close_response(ok_id);
+        dialog.set_response_appearance(ok_id, ResponseAppearance::Suggested);
+        dialog.present(Some(&self.window));
     }
 
     fn activate_collection(&self, collection_id: CollectionId) {

@@ -10,7 +10,7 @@
             <object class="AdwNavigationView" id="navigation_view">
                 <child>
                     <object class="AdwNavigationPage">
-                        <property name="title" translatable="yes">Collections</property>
+                        <property name="title" translatable="yes">Puzzle More Days - Collections</property>
                         <property name="tag">collection-selection</property>
                         <property name="child">
                             <object class="AdwToolbarView">
@@ -36,6 +36,9 @@
                                                         <child>
                                                             <object class="GtkLabel">
                                                                 <property name="label" translatable="yes">Core Collections</property>
+                                                                <style>
+                                                                    <class name="section-label"/>
+                                                                </style>
                                                             </object>
                                                         </child>
                                                         <child>
@@ -48,6 +51,9 @@
                                                         <child>
                                                             <object class="GtkLabel">
                                                                 <property name="label" translatable="yes">Community Collections</property>
+                                                                <style>
+                                                                    <class name="section-label"/>
+                                                                </style>
                                                             </object>
                                                         </child>
                                                         <child>
@@ -59,6 +65,7 @@
                                                                     <object class="AdwButtonRow" id="load_collection_button_row">
                                                                         <property name="title" translatable="yes">Load Collection</property>
                                                                         <property name="action-name">app.load_collection</property>
+                                                                        <property name="selectable">False</property>
                                                                     </object>
                                                                 </child>
                                                             </object>

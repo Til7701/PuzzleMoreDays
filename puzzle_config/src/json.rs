@@ -202,7 +202,10 @@ fn convert_board(
             if let Some(custom_board) = custom_boards.get(&name) {
                 Ok(custom_board.clone())
             } else {
-                Err(ReadError::UnknownCustomBoard { name })
+                Err(ReadError::UnknownCustomBoard {
+                    puzzle_name: "unknown".to_string(),
+                    board_name: name,
+                })
             }
         }
         Board::SimpleBoard { layout } => {

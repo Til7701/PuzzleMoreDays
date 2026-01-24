@@ -1,3 +1,10 @@
+.section-label {
+    font-weight: bold;
+    font-size: medium;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
 .tile-cell {
     border-style: none;
     border-radius: 0;

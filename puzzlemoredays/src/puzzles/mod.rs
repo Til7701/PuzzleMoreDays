@@ -1,6 +1,6 @@
 use adw::gio::{resources_lookup_data, ResourceLookupFlags};
 use once_cell::sync::Lazy;
-use puzzle_config::PuzzleConfigCollection;
+use puzzle_config::{PuzzleConfigCollection, ReadError};
 use std::backtrace::Backtrace;
 use std::sync::{Mutex, MutexGuard, TryLockError};
 use std::time::Duration;
@@ -56,4 +56,11 @@ pub fn get_puzzle_collection_store() -> MutexGuard<'static, PuzzleCollectionStor
         }
         Err(TryLockError::Poisoned(_)) => PUZZLE_COLLECTION_STORE.lock().unwrap(),
     }
+}
+
+pub fn add_community_collection_from_string(json_str: &str) -> Result<(), ReadError> {
+    let mut store = get_puzzle_collection_store();
+    let collection = puzzle_config::load_puzzle_collection_from_json(json_str)?;
+    store.community_puzzle_collections.push(collection);
+    Ok(())
 }
