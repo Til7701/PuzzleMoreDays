@@ -6,7 +6,7 @@ use adw::NavigationView;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct NavigationPresenter {
     navigation_view: NavigationView,
     presenters: Rc<RefCell<Option<Presenters>>>,
@@ -48,7 +48,6 @@ impl NavigationPresenter {
     }
 }
 
-#[derive(Debug)]
 struct Presenters {
     collection_selection: CollectionSelectionPresenter,
     puzzle_selection: PuzzleSelectionPresenter,

@@ -1,5 +1,5 @@
 use crate::application::PuzzlemoredaysApplication;
-use crate::global::state::{get_state, get_state_mut};
+use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension};
 use crate::presenter::navigation::NavigationPresenter;
 use crate::window::PuzzlemoredaysWindow;
 use adw::gio;
@@ -8,9 +8,9 @@ use adw::prelude::{ActionMapExtManual, ActionRowExt, PreferencesRowExt};
 use gtk::prelude::ActionableExt;
 use gtk::ListBox;
 use log::error;
-use puzzle_config::{PuzzleConfig, PuzzleConfigCollection};
+use puzzle_config::{BoardConfig, PuzzleConfig, PuzzleConfigCollection};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PuzzleSelectionPresenter {
     navigation: NavigationPresenter,
     puzzle_list: ListBox,
@@ -55,19 +55,37 @@ impl PuzzleSelectionPresenter {
     }
 
     fn activate_puzzle(&self, index: u32) {
-        let mut state = get_state_mut();
+        let state = get_state();
         let collection = &state.puzzle_collection;
         match collection {
             None => {
                 error!("No puzzle collection selected");
             }
             Some(c) => {
-                let puzzle_config = &c.puzzles()[index as usize];
-                state.puzzle_config = Some(puzzle_config.clone());
+                let puzzle_config = c.puzzles()[index as usize].clone();
                 drop(state);
+                self.setup_state_for_puzzle(puzzle_config);
                 self.navigation.show_puzzle_area();
             }
         };
+    }
+
+    fn setup_state_for_puzzle(&self, puzzle_config: PuzzleConfig) {
+        let mut state = get_state_mut();
+
+        match &puzzle_config.board_config() {
+            BoardConfig::Simple { .. } => {
+                state.puzzle_type_extension = Some(PuzzleTypeExtension::Simple);
+            }
+            BoardConfig::Area { .. } => {
+                let default_target = puzzle_config.board_config().default_target();
+                state.puzzle_type_extension = Some(PuzzleTypeExtension::Area {
+                    target: default_target,
+                });
+            }
+        }
+
+        state.puzzle_config = Some(puzzle_config);
     }
 }
 

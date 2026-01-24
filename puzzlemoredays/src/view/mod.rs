@@ -23,8 +23,8 @@ pub fn create_target_selection_dialog() -> AlertDialog {
     let state = get_state();
     let puzzle_config = &state.puzzle_config.clone().unwrap();
     let current_selection = match &state.puzzle_type_extension {
-        Some(PuzzleTypeExtension::Area { target }) => Some(target),
-        _ => None,
+        Some(PuzzleTypeExtension::Area { target }) => target,
+        _ => &None,
     };
     let (area_configs, area_count) = match &puzzle_config.board_config() {
         BoardConfig::Area { area_configs, .. } => {
@@ -76,8 +76,12 @@ pub fn create_target_selection_dialog() -> AlertDialog {
                 }
             }
             let mut state = get_state_mut();
-            if let Some(PuzzleTypeExtension::Area { target }) = &mut state.puzzle_type_extension {
-                target.indices = selected_values.clone();
+            if let Some(PuzzleTypeExtension::Area { .. }) = &state.puzzle_type_extension {
+                state.puzzle_type_extension = Some(PuzzleTypeExtension::Area {
+                    target: Some(Target {
+                        indices: selected_values,
+                    }),
+                });
             }
             drop(state);
         }
@@ -86,8 +90,8 @@ pub fn create_target_selection_dialog() -> AlertDialog {
         move |_, _| {
             dbg!("Cleared target selection");
             let mut state = get_state_mut();
-            if let Some(PuzzleTypeExtension::Area { .. }) = state.puzzle_type_extension {
-                state.puzzle_type_extension = None;
+            if let Some(PuzzleTypeExtension::Area { .. }) = &state.puzzle_type_extension {
+                state.puzzle_type_extension = Some(PuzzleTypeExtension::Area { target: None });
             }
             state.solver_state = SolverState::Initial;
             drop(state);
@@ -107,7 +111,7 @@ pub fn create_target_selection_dialog() -> AlertDialog {
 fn create_dropdown_for_area(
     content: &PreferencesGroup,
     puzzle_config: &PuzzleConfig,
-    current_selection: Option<&Target>,
+    current_selection: &Option<Target>,
     area_configs: &&Vec<AreaConfig>,
     area_index: usize,
 ) -> (Vec<TargetIndexListItem>, ComboRow) {

@@ -129,13 +129,14 @@
                                             </object>
                                         </child>
                                         <child type="start">
-                                            <object class="GtkSeparator">
+                                            <object class="GtkSeparator" id="extension_separator">
                                                 <property name="orientation">vertical</property>>
                                             </object>
                                         </child>
                                         <child type="start">
                                             <object class="GtkButton" id="target_selection_button">
                                                 <property name="label" translatable="yes">No Target Selected</property>
+                                                <property name="action-name">app.select_target</property>
                                             </object>
                                         </child>
                                     </object>

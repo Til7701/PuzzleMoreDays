@@ -108,5 +108,5 @@ impl Default for PreferencesState {
 #[derive(Debug)]
 pub enum PuzzleTypeExtension {
     Simple,
-    Area { target: Target },
+    Area { target: Option<Target> },
 }

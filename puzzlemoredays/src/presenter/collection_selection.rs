@@ -11,7 +11,7 @@ use gtk::ListBox;
 use log::error;
 use puzzle_config::PuzzleConfigCollection;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct CollectionSelectionPresenter {
     navigation: NavigationPresenter,
     core_collection_list: ListBox,

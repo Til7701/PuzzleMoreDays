@@ -71,7 +71,9 @@ impl BoardPresenter {
         let puzzle_type_extension = &state.puzzle_type_extension;
         let data = self.data.borrow();
         match puzzle_type_extension {
-            Some(PuzzleTypeExtension::Area { target }) => {
+            Some(PuzzleTypeExtension::Area {
+                target: Some(target),
+            }) => {
                 if let Some(board_view) = &data.board_view {
                     target.indices.iter().for_each(|TargetIndex(x, y)| {
                         if let Some(widget) = board_view.parent.child_at(*x as i32, *y as i32) {

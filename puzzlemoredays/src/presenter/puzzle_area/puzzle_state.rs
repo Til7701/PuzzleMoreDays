@@ -80,10 +80,14 @@ impl PuzzleState {
             });
         }
 
-        PuzzleState {
+        let mut puzzle_state = PuzzleState {
             grid,
             unused_tiles: HashSet::new(),
+        };
+        if let Some(extension) = puzzle_type_extension {
+            puzzle_state.handle_extension(extension);
         }
+        puzzle_state
     }
 
     fn is_adjacent_to_board(position: (i32, i32), puzzle_config: &PuzzleConfig) -> bool {
@@ -110,7 +114,9 @@ impl PuzzleState {
 
     fn handle_extension(&mut self, puzzle_type_extension: &PuzzleTypeExtension) {
         match puzzle_type_extension {
-            PuzzleTypeExtension::Area { target } => {
+            PuzzleTypeExtension::Area {
+                target: Some(target),
+            } => {
                 for index in &target.indices {
                     let cell = self.grid.get_mut((index.0, index.1));
                     if let Some(cell) = cell {

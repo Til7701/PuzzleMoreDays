@@ -42,6 +42,8 @@ mod imp {
         #[template_child]
         pub puzzle_info_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub extension_separator: TemplateChild<gtk::Separator>,
+        #[template_child]
         pub target_selection_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub solver_state: TemplateChild<gtk::Button>,
@@ -109,6 +111,10 @@ impl PuzzlemoredaysWindow {
 
     pub fn puzzle_info_button(&self) -> gtk::Button {
         self.imp().puzzle_info_button.clone()
+    }
+
+    pub fn extension_separator(&self) -> gtk::Separator {
+        self.imp().extension_separator.clone()
     }
 
     pub fn target_selection_button(&self) -> gtk::Button {
