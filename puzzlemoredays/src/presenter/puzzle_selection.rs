@@ -8,7 +8,7 @@ use adw::prelude::{ActionMapExtManual, ActionRowExt, PreferencesRowExt};
 use gtk::prelude::ActionableExt;
 use gtk::ListBox;
 use log::error;
-use puzzle_config::{BoardConfig, PuzzleConfig, PuzzleConfigCollection};
+use puzzle_config::{BoardConfig, PuzzleConfig};
 
 #[derive(Clone)]
 pub struct PuzzleSelectionPresenter {

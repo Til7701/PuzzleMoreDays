@@ -1,17 +1,17 @@
 use crate::application::PuzzlemoredaysApplication;
-use crate::global::state::{get_state, get_state_mut};
+use crate::global::state::get_state_mut;
 use crate::presenter::navigation::NavigationPresenter;
 use crate::puzzles::{add_community_collection_from_string, get_puzzle_collection_store};
 use crate::window::PuzzlemoredaysWindow;
 use adw::gio::{Cancellable, File};
-use adw::glib::{Error, Variant, VariantTy};
+use adw::glib::{Variant, VariantTy};
 use adw::prelude::{
-    ActionMapExtManual, ActionRowExt, AdwDialogExt, AlertDialogExt, FileExt, FileExtManual,
+    ActionMapExtManual, ActionRowExt, AdwDialogExt, AlertDialogExt, FileExtManual,
     PreferencesRowExt,
 };
 use adw::{gio, AlertDialog, ButtonRow, ResponseAppearance};
-use gtk::prelude::{ActionableExt, BoxExt, DialogExt, GtkWindowExt};
-use gtk::{Dialog, ListBox};
+use gtk::prelude::ActionableExt;
+use gtk::ListBox;
 use log::{debug, error};
 use puzzle_config::ReadError::FileReadError;
 use puzzle_config::{PuzzleConfigCollection, ReadError};

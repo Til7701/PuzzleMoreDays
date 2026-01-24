@@ -1,9 +1,8 @@
 use crate::global::runtime::get_runtime;
 use crate::global::state::SolverState::Done;
-use crate::global::state::{get_state, get_state_mut, SolverState, State};
+use crate::global::state::{get_state_mut, SolverState, State};
 use crate::presenter::puzzle_area::puzzle_state::{Cell, PuzzleState};
 use log::debug;
-use puzzle_config::Target;
 use puzzle_solver::board::Board;
 use puzzle_solver::tile::Tile;
 use std::cmp::PartialEq;

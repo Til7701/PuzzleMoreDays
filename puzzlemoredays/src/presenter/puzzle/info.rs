@@ -1,9 +1,7 @@
 use crate::application::PuzzlemoredaysApplication;
 use crate::global::state::get_state;
 use crate::window::PuzzlemoredaysWindow;
-use adw::prelude::{
-    ActionMapExtManual, AdwDialogExt, Cast, PreferencesGroupExt, PreferencesPageExt,
-};
+use adw::prelude::{ActionMapExtManual, AdwDialogExt, Cast, PreferencesGroupExt};
 use adw::{gio, ActionRow, Dialog};
 use gtk::prelude::WidgetExt;
 use puzzle_config::PuzzleConfig;

@@ -1,5 +1,5 @@
 use ndarray::Array2;
-use std::ops::{BitAnd, BitOr, BitXor, Index, IndexMut};
+use std::ops::{BitAnd, BitOr, BitXor, Index};
 
 /// Must be the same as the bits in the primitive type used in the bitmask array.
 const BITS_IN_PRIMITIVE: usize = 128;
