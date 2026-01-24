@@ -338,7 +338,7 @@ mod tests {
     fn test_convert_predefined_tile() {
         let tile = Tile::Ref("L3".to_string());
         let converted_tile = convert_tile(&"test".to_string(), tile, &HashMap::new()).unwrap();
-        let expected_tile = TileConfig::new(arr2(&[[true, false], [true, true]]));
+        let expected_tile = TileConfig::new(arr2(&[[true, false], [true, true]]).reversed_axes());
         assert_eq!(converted_tile.base(), expected_tile.base());
     }
 
@@ -360,7 +360,7 @@ mod tests {
     fn test_convert_custom_tile() {
         let tile = Tile::Custom(vec![vec![1, 0], vec![1, 1]]);
         let converted_tile = convert_tile(&"test".to_string(), tile, &HashMap::new()).unwrap();
-        let expected_tile = TileConfig::new(arr2(&[[true, false], [true, true]]));
+        let expected_tile = TileConfig::new(arr2(&[[true, false], [true, true]]).reversed_axes());
         assert_eq!(converted_tile.base(), expected_tile.base());
     }
 
