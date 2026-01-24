@@ -34,3 +34,77 @@ pub fn load_puzzle_collection_from_json(
 
     json::load_puzzle_collection_from_json(value)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::arr2;
+    #[test]
+    fn test_load_puzzle_collection_from_json() {
+        let json_str = r#"
+        {
+          "config_version": 1,
+          "name": "Test Collection",
+          "author": "Test Author",
+          "description": "A test puzzle collection",
+          "custom_tiles": {
+            "testTile": [
+              [1, 0, 1],
+              [1, 1, 1]
+            ]
+          },
+          "custom_boards": {
+            "3x3": {
+              "layout": [
+                [0, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0]
+              ]
+            }
+          },
+          "puzzles": [
+            {
+              "name": "Simple",
+              "tiles": [
+                "L3",
+                "testTile"
+              ],
+              "board": "3x3"
+            }
+          ]
+        }
+        "#;
+
+        let result = load_puzzle_collection_from_json(json_str);
+        assert!(result.is_ok());
+        let collection = result.unwrap();
+        assert_eq!(collection.name(), "Test Collection");
+        assert_eq!(collection.author(), "Test Author");
+        assert_eq!(
+            collection.description(),
+            &Some("A test puzzle collection".to_string())
+        );
+        assert_eq!(1, collection.puzzles().len());
+        let puzzle = &collection.puzzles()[0];
+        assert_eq!(puzzle.name(), "Simple");
+        assert_eq!(2, puzzle.tiles().len());
+        assert_eq!(
+            puzzle.board_config().layout(),
+            arr2(&[
+                [false, false, false],
+                [false, true, false],
+                [false, false, false]
+            ])
+        );
+        let ref_tile = &puzzle.tiles()[0];
+        assert_eq!(
+            ref_tile.base(),
+            arr2(&[[true, false], [true, true]]).reversed_axes()
+        );
+        let custom_tile = &puzzle.tiles()[1];
+        assert_eq!(
+            custom_tile.base(),
+            arr2(&[[true, false, true], [true, true, true]]).reversed_axes()
+        );
+    }
+}

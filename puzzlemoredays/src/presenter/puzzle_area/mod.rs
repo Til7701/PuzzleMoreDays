@@ -238,7 +238,7 @@ impl PuzzleAreaPresenter {
         let data = self.data.borrow();
         let board_position = data.grid_config.board_offset_cells;
 
-        for tile_view in &data.tile_views {
+        for (i, tile_view) in data.tile_views.iter().enumerate() {
             let tile_position = tile_view.position_cells.ok_or("Tile position not set")?;
             let tile_position = tile_position - board_position + CellOffset(1, 1);
             for (element, offset) in &tile_view.elements_with_offset {
@@ -269,6 +269,7 @@ impl PuzzleAreaPresenter {
                     state.grid[idx] = new;
                 } else {
                     let unused_tile = UnusedTile {
+                        id: i,
                         base: tile_view.tile_base.clone(),
                     };
                     state.unused_tiles.insert(unused_tile);
