@@ -4,7 +4,7 @@ use crate::puzzles::get_puzzle_collection_store;
 use crate::state::get_state;
 use crate::window::PuzzlemoredaysWindow;
 use adw::glib::{Variant, VariantTy};
-use adw::prelude::ActionMapExtManual;
+use adw::prelude::{ActionMapExtManual, ActionRowExt, PreferencesRowExt};
 use adw::{gio, NavigationView};
 use gtk::prelude::{ActionableExt, WidgetExt};
 use gtk::ListBox;
@@ -66,24 +66,16 @@ impl PuzzleSelectionPresenter {
     }
 }
 
-fn create_puzzle_row(index: u32, collection: &PuzzleConfig) -> gtk::ListBoxRow {
+fn create_puzzle_row(index: u32, collection: &PuzzleConfig) -> adw::ActionRow {
     const RESOURCE_PATH: &str = "/de/til7701/PuzzleMoreDays/puzzle-selection-item.ui";
     let builder = gtk::Builder::from_resource(RESOURCE_PATH);
-    let row: gtk::ListBoxRow = builder
+    let row: adw::ActionRow = builder
         .object("row")
         .expect("Missing `puzzle-selection-item.ui` in resource");
 
-    let puzzle_name_label: gtk::Label = builder
-        .object("puzzle_name_label")
-        .expect("Missing `puzzle_name_label` in puzzle-selection-item.ui");
-    puzzle_name_label.set_text(collection.name());
-
-    let puzzle_description_label: gtk::Label = builder
-        .object("puzzle_description_label")
-        .expect("Missing `puzzle_description_label` in puzzle-selection-item.ui");
-    match collection.description() {
-        None => puzzle_description_label.set_visible(false),
-        Some(description) => puzzle_description_label.set_text(description),
+    row.set_title(collection.name());
+    if let Some(description) = collection.description() {
+        row.set_subtitle(description);
     }
 
     row.set_action_target_value(Some(&Variant::from(index)));

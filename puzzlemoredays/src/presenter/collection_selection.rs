@@ -1,23 +1,22 @@
 use crate::application::PuzzlemoredaysApplication;
 use crate::presenter::navigation::NavigationPresenter;
-use crate::presenter::puzzle_selection::PuzzleSelectionPresenter;
 use crate::puzzles::get_puzzle_collection_store;
 use crate::state::get_state;
 use crate::window::PuzzlemoredaysWindow;
 use adw::glib::{Variant, VariantTy};
-use adw::prelude::ActionMapExtManual;
-use adw::{gio, NavigationView};
-use gtk::prelude::{ActionableExt, WidgetExt};
+use adw::prelude::{ActionMapExtManual, ActionRowExt, PreferencesRowExt};
+use adw::{gio, ButtonRow};
+use gtk::prelude::{ActionableExt, BoxExt};
 use gtk::ListBox;
 use log::error;
 use puzzle_config::PuzzleConfigCollection;
-use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub struct CollectionSelectionPresenter {
     navigation: NavigationPresenter,
     core_collection_list: ListBox,
     community_collection_list: ListBox,
+    load_collection_button_row: ButtonRow,
 }
 
 impl CollectionSelectionPresenter {
@@ -26,6 +25,7 @@ impl CollectionSelectionPresenter {
             navigation,
             core_collection_list: window.core_collection_list(),
             community_collection_list: window.community_collection_list(),
+            load_collection_button_row: window.load_collection_button_row(),
         }
     }
 
@@ -72,6 +72,8 @@ impl CollectionSelectionPresenter {
 
     fn update_community_collections(&self) {
         self.community_collection_list.remove_all();
+        self.community_collection_list
+            .append(&self.load_collection_button_row);
 
         let collection_store = get_puzzle_collection_store();
         for (i, collection) in collection_store
@@ -114,24 +116,16 @@ impl CollectionSelectionPresenter {
     }
 }
 
-fn create_collection_row(id: CollectionId, collection: &PuzzleConfigCollection) -> gtk::ListBoxRow {
+fn create_collection_row(id: CollectionId, collection: &PuzzleConfigCollection) -> adw::ActionRow {
     const RESOURCE_PATH: &str = "/de/til7701/PuzzleMoreDays/puzzle-collection-item.ui";
     let builder = gtk::Builder::from_resource(RESOURCE_PATH);
-    let row: gtk::ListBoxRow = builder
+    let row: adw::ActionRow = builder
         .object("row")
         .expect("Missing `puzzle-collection-item.ui` in resource");
 
-    let collection_name_label: gtk::Label = builder
-        .object("collection_name_label")
-        .expect("Missing `collection_name_label` in puzzle-collection-item.ui");
-    collection_name_label.set_text(collection.name());
-
-    let collection_description_label: gtk::Label = builder
-        .object("collection_description_label")
-        .expect("Missing `collection_description_label` in puzzle-collection-item.ui");
-    match collection.description() {
-        None => collection_description_label.set_visible(false),
-        Some(description) => collection_description_label.set_text(description),
+    row.set_title(collection.name());
+    if let Some(description) = collection.description() {
+        row.set_subtitle(description);
     }
 
     row.set_action_target_value(Some(&id.into()));

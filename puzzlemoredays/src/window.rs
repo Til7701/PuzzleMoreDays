@@ -34,6 +34,8 @@ mod imp {
         #[template_child]
         pub community_collection_list: TemplateChild<gtk::ListBox>,
         #[template_child]
+        pub load_collection_button_row: TemplateChild<adw::ButtonRow>,
+        #[template_child]
         pub puzzle_list: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub grid: TemplateChild<gtk::Fixed>,
@@ -91,6 +93,10 @@ impl PuzzlemoredaysWindow {
 
     pub fn community_collection_list(&self) -> gtk::ListBox {
         self.imp().community_collection_list.clone()
+    }
+
+    pub fn load_collection_button_row(&self) -> adw::ButtonRow {
+        self.imp().load_collection_button_row.clone()
     }
 
     pub fn puzzle_list(&self) -> gtk::ListBox {

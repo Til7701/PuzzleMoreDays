@@ -28,48 +28,41 @@
                                 </child>
                                 <property name="content">
                                     <object class="GtkScrolledWindow">
-                                        <property name="hexpand">True</property>
-                                        <property name="vexpand">True</property>
                                         <child>
-                                            <object class="GtkBox">
-                                                <property name="orientation">vertical</property>
+                                            <object class="AdwClamp">
                                                 <child>
-                                                    <object class="GtkLabel">
-                                                        <property name="label" translatable="yes">Core Collections</property>
-                                                        <property name="halign">start</property>
-                                                        <property name="xalign">0</property>
-                                                        <property name="use-markup">True</property>
-                                                        <property name="margin-start">12</property>
-                                                        <property name="margin-top">12</property>
-                                                        <property name="margin-bottom">6</property>
-                                                    </object>
-                                                </child>
-                                                <child>
-                                                    <object class="GtkListBox" id="core_collection_list">
-                                                    </object>
-                                                </child>
-                                                <child>
-                                                    <object class="GtkLabel">
-                                                        <property name="label" translatable="yes">Community Collections</property>
-                                                        <property name="halign">start</property>
-                                                        <property name="xalign">0</property>
-                                                        <property name="use-markup">True</property>
-                                                        <property name="margin-start">12</property>
-                                                        <property name="margin-top">12</property>
-                                                        <property name="margin-bottom">6</property>
-                                                    </object>
-                                                </child>
-                                                <child>
-                                                    <object class="GtkListBox" id="community_collection_list">
-                                                    </object>
-                                                </child>
-                                                <child>
-                                                    <object class="GtkButton">
-                                                        <property name="action-name">app.load_collection</property>
-                                                        <property name="label" translatable="yes">Load Collection</property>
-                                                        <property name="halign">center</property>
-                                                        <property name="margin-top">12</property>
-                                                        <property name="margin-bottom">12</property>
+                                                    <object class="GtkBox">
+                                                        <property name="orientation">vertical</property>
+                                                        <child>
+                                                            <object class="GtkLabel">
+                                                                <property name="label" translatable="yes">Core Collections</property>
+                                                            </object>
+                                                        </child>
+                                                        <child>
+                                                            <object class="GtkListBox" id="core_collection_list">
+                                                                <style>
+                                                                    <class name="boxed-list"/>
+                                                                </style>
+                                                            </object>
+                                                        </child>
+                                                        <child>
+                                                            <object class="GtkLabel">
+                                                                <property name="label" translatable="yes">Community Collections</property>
+                                                            </object>
+                                                        </child>
+                                                        <child>
+                                                            <object class="GtkListBox" id="community_collection_list">
+                                                                <style>
+                                                                    <class name="boxed-list"/>
+                                                                </style>
+                                                                <child>
+                                                                    <object class="AdwButtonRow" id="load_collection_button_row">
+                                                                        <property name="title" translatable="yes">Load Collection</property>
+                                                                        <property name="action-name">app.load_collection</property>
+                                                                    </object>
+                                                                </child>
+                                                            </object>
+                                                        </child>
                                                     </object>
                                                 </child>
                                             </object>
@@ -91,10 +84,20 @@
                                 </child>
                                 <property name="content">
                                     <object class="GtkScrolledWindow">
-                                        <property name="hexpand">True</property>
-                                        <property name="vexpand">True</property>
                                         <child>
-                                            <object class="GtkListBox" id="puzzle_list">
+                                            <object class="AdwClamp">
+                                                <child>
+                                                    <object class="GtkBox">
+                                                        <property name="orientation">vertical</property>
+                                                        <child>
+                                                            <object class="GtkListBox" id="puzzle_list">
+                                                                <style>
+                                                                    <class name="boxed-list"/>
+                                                                </style>
+                                                            </object>
+                                                        </child>
+                                                    </object>
+                                                </child>
                                             </object>
                                         </child>
                                     </object>
