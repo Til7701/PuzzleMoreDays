@@ -1,4 +1,5 @@
-mod board;
+pub mod collection_selection;
+pub mod navigation;
+pub mod puzzle;
 pub mod puzzle_area;
-mod tile;
-pub mod main;
+pub mod puzzle_selection;

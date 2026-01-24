@@ -1,12 +1,12 @@
 use crate::offset::{CellOffset, PixelOffset};
 use crate::presenter::puzzle_area::PuzzleAreaData;
-use crate::puzzle::config::TileConfig;
-use crate::view::TileView;
+use crate::view::tile::TileView;
 use adw::gdk::{BUTTON_MIDDLE, BUTTON_SECONDARY};
 use gtk::prelude::{
     Cast, EventControllerExt, FixedExt, GestureDragExt, GestureSingleExt, WidgetExt,
 };
 use gtk::{EventController, GestureClick, GestureDrag, PropagationPhase, Widget};
+use puzzle_config::TileConfig;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -23,10 +23,11 @@ impl TilePresenter {
     pub fn setup(
         &self,
         tile: &TileConfig,
+        tile_id: usize,
         start_position_cell: &CellOffset,
         on_position_changed: Rc<dyn Fn()>,
     ) {
-        let mut tile_view = TileView::new(tile.id, tile.base.clone());
+        let mut tile_view = TileView::new(tile_id, tile.base().clone());
 
         let start_position = {
             let data = self.data.borrow();
@@ -37,12 +38,8 @@ impl TilePresenter {
         tile_view.position_cells = Some(*start_position_cell);
 
         for draggable in tile_view.draggables.iter() {
-            self.setup_drag_and_drop(tile.id as usize, &draggable, on_position_changed.clone());
-            self.setup_tile_rotation_and_flip(
-                tile.id as usize,
-                &draggable,
-                on_position_changed.clone(),
-            );
+            self.setup_drag_and_drop(tile_id, &draggable, on_position_changed.clone());
+            self.setup_tile_rotation_and_flip(tile_id, &draggable, on_position_changed.clone());
         }
         let mut data = self.data.borrow_mut();
         tile_view
@@ -252,18 +249,13 @@ impl TilePresenter {
     fn move_to(&self, tile_view_index: usize, pos_pixel: PixelOffset) {
         let mut data = self.data.borrow_mut();
         let grid_size = data.grid_config.cell_width_pixel as f64;
-        let fixed = {
-            match &data.fixed {
-                Some(fixed) => fixed.clone(),
-                None => return,
-            }
-        };
+        let fixed = &data.fixed.clone();
 
         if let Some(tile_view) = data.tile_views.get_mut(tile_view_index) {
             for (widget, offset) in tile_view.elements_with_offset.iter() {
                 let new = pos_pixel + offset.mul_scalar(grid_size);
                 fixed.move_(widget, new.0, new.1);
-                widget.insert_before(&fixed, None::<&Widget>); // Bring to front
+                widget.insert_before(fixed, None::<&Widget>); // Bring to front
             }
             tile_view.position_pixels = pos_pixel;
         }

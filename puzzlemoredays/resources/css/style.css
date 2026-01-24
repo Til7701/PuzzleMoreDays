@@ -1,3 +1,10 @@
+.section-label {
+    font-weight: bold;
+    font-size: medium;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
 .tile-cell {
     border-style: none;
     border-radius: 0;
@@ -16,15 +23,15 @@
 }
 
 .tile-cell-3 {
-    background-color: var(--orange-5);
-}
-
-.tile-cell-4 {
     background-color: var(--red-5);
 }
 
-.tile-cell-5 {
+.tile-cell-4 {
     background-color: var(--purple-5);
+}
+
+.tile-cell-5 {
+    background-color: var(--orange-5);
 }
 
 .tile-cell-6 {
@@ -74,6 +81,10 @@
 }
 
 @media (prefers-color-scheme: dark) {
+    .board-cell-simple {
+        background-color: #333333;
+    }
+
     .board-cell-0 {
         background-color: #333333;
     }
@@ -92,6 +103,10 @@
 }
 
 @media (prefers-color-scheme: light) {
+    .board-cell-simple {
+        background-color: var(--light-2);
+    }
+
     .board-cell-0 {
         background-color: var(--light-2);
     }

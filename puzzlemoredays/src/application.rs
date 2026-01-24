@@ -18,27 +18,28 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use crate::config::VERSION;
+use crate::presenter::collection_selection::CollectionSelectionPresenter;
+use crate::presenter::navigation::NavigationPresenter;
+use crate::presenter::puzzle::PuzzlePresenter;
+use crate::presenter::puzzle_selection::PuzzleSelectionPresenter;
 use crate::window::PuzzlemoredaysWindow;
 use adw::gdk::Display;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
-use gtk::{
-    gio, glib, CssProvider, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION,
-};
+use gtk::{gio, glib, CssProvider, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION};
 use std::fmt::Debug;
+use std::rc::Rc;
 
 mod imp {
     use super::*;
-    use crate::presenter::main::MainPresenter;
-    use crate::state::take_runtime;
+    use crate::global::runtime::take_runtime;
+    use crate::puzzles;
     use crate::window::PuzzlemoredaysWindow;
     use simple_logger::SimpleLogger;
 
     #[derive(Debug, Default)]
-    pub struct PuzzlemoredaysApplication {
-        pub main_presenter: MainPresenter,
-    }
+    pub struct PuzzlemoredaysApplication {}
 
     #[glib::object_subclass]
     impl ObjectSubclass for PuzzlemoredaysApplication {
@@ -71,6 +72,7 @@ mod imp {
             });
 
             application.load_css();
+            puzzles::init();
             application.setup(
                 &window
                     .downcast_ref::<PuzzlemoredaysWindow>()
@@ -173,20 +175,26 @@ impl PuzzlemoredaysApplication {
     }
 
     fn setup(&self, window: &PuzzlemoredaysWindow) {
-        window.connect_default_width_notify({
-            let main_presenter = self.imp().main_presenter.clone();
-            move |_| main_presenter.update_layout()
-        });
-        window.connect_is_active_notify({
-            let main_presenter = self.imp().main_presenter.clone();
-            move |_| main_presenter.update_layout()
-        });
-        // Currently, this does not work, since the width is not updated yet when this signal is emitted.
-        window.connect_maximized_notify({
-            let main_presenter = self.imp().main_presenter.clone();
-            move |_| main_presenter.update_layout()
-        });
+        let mut navigation_presenter = NavigationPresenter::new(window);
 
-        self.imp().main_presenter.setup(window);
+        let puzzle_presenter = PuzzlePresenter::new(window);
+        puzzle_presenter.register_actions(self);
+        puzzle_presenter.setup();
+
+        let puzzle_selection_presenter = Rc::new(PuzzleSelectionPresenter::new(
+            &window,
+            navigation_presenter.clone(),
+        ));
+        puzzle_selection_presenter.register_actions(self);
+        puzzle_selection_presenter.setup();
+
+        let collection_selection_presenter = Rc::new(CollectionSelectionPresenter::new(
+            &window,
+            navigation_presenter.clone(),
+        ));
+        collection_selection_presenter.register_actions(self);
+        collection_selection_presenter.setup();
+
+        navigation_presenter.setup(&puzzle_selection_presenter, &puzzle_presenter);
     }
 }

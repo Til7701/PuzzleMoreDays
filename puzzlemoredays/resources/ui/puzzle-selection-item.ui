@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <requires lib="gtk" version="4.0"/>
+    <object class="AdwActionRow" id="row">
+        <property name="selectable">False</property>
+        <property name="activatable">True</property>
+        <property name="action-name">app.puzzle_activated</property>
+    </object>
+</interface>

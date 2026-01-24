@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["puzzle_solver", "puzzlemoredays"]
+members = ["puzzle_solver", "puzzle_config", "puzzlemoredays"]
 
 [workspace.package]
 version = "0.1.0"
@@ -8,6 +8,7 @@ edition = "2024"
 
 [workspace.dependencies]
 puzzle_solver = { path = "./puzzle_solver" }
+puzzle_config = { path = "./puzzle_config" }
 gettext-rs = { version = "0.7", features = ["gettext-system"] }
 gtk = { version = "0.10.3", package = "gtk4", features = ["gnome_49"] }
 adw = { version = "0.8.1", package = "libadwaita", features = ["v1_8"] }
@@ -19,3 +20,5 @@ time = "0.3.45"
 humantime = "2.3.0"
 tokio = { version = "1.49.0", features = ["rt", "rt-multi-thread", "macros"] }
 tokio-util = "0.7.18"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.149" }

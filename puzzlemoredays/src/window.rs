@@ -28,15 +28,25 @@ mod imp {
     #[template(resource = "/de/til7701/PuzzleMoreDays/window.ui")]
     pub struct PuzzlemoredaysWindow {
         #[template_child]
-        pub grid: TemplateChild<gtk::Fixed>,
+        pub navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
-        pub puzzle_selection: TemplateChild<gtk::DropDown>,
+        pub core_collection_list: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub community_collection_list: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub load_collection_button_row: TemplateChild<adw::ButtonRow>,
+        #[template_child]
+        pub puzzle_list: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub grid: TemplateChild<gtk::Fixed>,
         #[template_child]
         pub puzzle_info_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub extension_separator: TemplateChild<gtk::Separator>,
+        #[template_child]
         pub target_selection_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub solver_status: TemplateChild<gtk::Button>,
+        pub solver_state: TemplateChild<gtk::Button>,
     }
 
     #[glib::object_subclass]
@@ -75,23 +85,43 @@ impl PuzzlemoredaysWindow {
             .build()
     }
 
-    pub fn grid(&self) -> gtk::Fixed {
-        self.imp().grid.clone()
+    pub fn navigation_view(&self) -> adw::NavigationView {
+        self.imp().navigation_view.clone()
     }
 
-    pub fn puzzle_selection(&self) -> gtk::DropDown {
-        self.imp().puzzle_selection.clone()
+    pub fn core_collection_list(&self) -> gtk::ListBox {
+        self.imp().core_collection_list.clone()
+    }
+
+    pub fn community_collection_list(&self) -> gtk::ListBox {
+        self.imp().community_collection_list.clone()
+    }
+
+    pub fn load_collection_button_row(&self) -> adw::ButtonRow {
+        self.imp().load_collection_button_row.clone()
+    }
+
+    pub fn puzzle_list(&self) -> gtk::ListBox {
+        self.imp().puzzle_list.clone()
+    }
+
+    pub fn grid(&self) -> gtk::Fixed {
+        self.imp().grid.clone()
     }
 
     pub fn puzzle_info_button(&self) -> gtk::Button {
         self.imp().puzzle_info_button.clone()
     }
 
+    pub fn extension_separator(&self) -> gtk::Separator {
+        self.imp().extension_separator.clone()
+    }
+
     pub fn target_selection_button(&self) -> gtk::Button {
         self.imp().target_selection_button.clone()
     }
 
-    pub fn solver_status(&self) -> gtk::Button {
-        self.imp().solver_status.clone()
+    pub fn solver_state(&self) -> gtk::Button {
+        self.imp().solver_state.clone()
     }
 }

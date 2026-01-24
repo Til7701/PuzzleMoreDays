@@ -1,17 +1,22 @@
-use crate::offset::{CellOffset, PixelOffset};
-use crate::presenter::board::BoardPresenter;
+use crate::global::state::get_state;
+use crate::offset::CellOffset;
+use crate::presenter::puzzle_area::board::BoardPresenter;
+use crate::presenter::puzzle_area::data::PuzzleAreaData;
+use crate::presenter::puzzle_area::puzzle_state::{Cell, PuzzleState, UnusedTile};
+use crate::presenter::puzzle_area::tile::TilePresenter;
 use crate::presenter::puzzle_area::HighlightMode::{OutOfBounds, Overlapping};
-use crate::presenter::tile::TilePresenter;
-use crate::puzzle::config::TileConfig;
-use crate::puzzle::PuzzleConfig;
-use crate::puzzle_state::{Cell, PuzzleState, UnusedTile};
-use crate::state::get_state;
-use crate::view::{BoardView, TileView};
-use gtk::prelude::{FixedExt, WidgetExt};
-use gtk::{Fixed, Widget};
+use crate::window::PuzzlemoredaysWindow;
+use gtk::prelude::{FixedExt, GtkWindowExt, WidgetExt};
+use gtk::Widget;
+use puzzle_config::{PuzzleConfig, TileConfig};
 use std::cell::RefCell;
 use std::mem::take;
 use std::rc::Rc;
+
+mod board;
+mod data;
+pub mod puzzle_state;
+mod tile;
 
 pub const WINDOW_TO_BOARD_RATIO: f64 = 2.0;
 pub const MIN_CELLS_TO_THE_SIDES_OF_BOARD: u32 = 6;
@@ -23,46 +28,46 @@ enum HighlightMode {
     OutOfBounds,
 }
 
-/// Configuration for the puzzle grid layout.
-#[derive(Debug, Default)]
-pub struct GridConfig {
-    pub grid_h_cell_count: u32,
-    pub cell_width_pixel: u32,
-    pub board_offset_cells: CellOffset,
-}
-
-#[derive(Debug, Default)]
-pub struct PuzzleAreaData {
-    pub fixed: Option<Fixed>,
-    pub elements_in_fixed: Vec<Widget>,
-    pub board_view: Option<BoardView>,
-    pub tile_views: Vec<TileView>,
-    pub grid_config: GridConfig,
-}
-
-impl PuzzleAreaData {
-    pub fn add_to_fixed(&mut self, widget: &Widget, pos: &PixelOffset) {
-        match &self.fixed {
-            Some(fixed) => {
-                fixed.put(widget, pos.0, pos.1);
-                self.elements_in_fixed.push(widget.clone());
-            }
-            None => {}
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct PuzzleAreaPresenter {
+    window: PuzzlemoredaysWindow,
     data: Rc<RefCell<PuzzleAreaData>>,
     board_presenter: BoardPresenter,
     tile_presenter: TilePresenter,
 }
 
 impl PuzzleAreaPresenter {
-    pub fn set_view(&self, view: Fixed) {
-        self.data.borrow_mut().fixed = Some(view);
-        self.clear_elements();
+    pub fn new(window: &PuzzlemoredaysWindow) -> Self {
+        let data = Rc::new(RefCell::new(PuzzleAreaData::default()));
+        data.borrow_mut().fixed = window.grid();
+
+        let mut board_presenter = BoardPresenter::default();
+        board_presenter.set_data(data.clone());
+        let mut tile_presenter = TilePresenter::default();
+        tile_presenter.set_data(data.clone());
+
+        Self {
+            window: window.clone(),
+            data,
+            board_presenter,
+            tile_presenter,
+        }
+    }
+
+    pub fn setup(&self) {
+        self.window.connect_default_width_notify({
+            let self_clone = self.clone();
+            move |_| self_clone.update_layout()
+        });
+        self.window.connect_is_active_notify({
+            let self_clone = self.clone();
+            move |_| self_clone.update_layout()
+        });
+        // Currently, this does not work, since the width is not updated yet when this signal is emitted.
+        self.window.connect_maximized_notify({
+            let self_clone = self.clone();
+            move |_| self_clone.update_layout()
+        });
     }
 
     /// Set up the puzzle configuration from the current state.
@@ -70,35 +75,36 @@ impl PuzzleAreaPresenter {
     /// This adds the board and tiles to the puzzle area based on the current puzzle configuration.
     /// Final positions and layout are handled in `update_layout()`. Before that, all elements are
     /// added at position (0, 0) and will be moved later.
-    pub fn setup_puzzle_config_from_state(&self, on_position_changed: Rc<dyn Fn()>) {
+    pub fn show_puzzle(&self, on_position_changed: Rc<dyn Fn()>) {
         self.clear_elements();
 
         let state = get_state();
-        let puzzle_config = &state.puzzle_config;
+        if let Some(puzzle_config) = &state.puzzle_config {
+            self.board_presenter.setup(puzzle_config);
 
-        self.board_presenter.setup(puzzle_config);
+            let start_positions =
+                self.calculate_tile_start_positions(&puzzle_config.tiles(), puzzle_config);
+            for (i, tile) in puzzle_config.tiles().iter().enumerate() {
+                self.tile_presenter.setup(
+                    tile,
+                    i,
+                    &start_positions[i],
+                    Rc::new({
+                        let self_clone = self.clone();
+                        let on_position_changed = on_position_changed.clone();
+                        move || {
+                            self_clone.update_highlights();
+                            on_position_changed();
+                        }
+                    }),
+                );
+            }
 
-        let start_positions =
-            self.calculate_tile_start_positions(&puzzle_config.tiles, puzzle_config);
-        for (i, tile) in puzzle_config.tiles.iter().enumerate() {
-            self.tile_presenter.setup(
-                tile,
-                &start_positions[i],
-                Rc::new({
-                    let self_clone = self.clone();
-                    let on_position_changed = on_position_changed.clone();
-                    move || {
-                        self_clone.update_highlights();
-                        on_position_changed();
-                    }
-                }),
-            );
+            drop(state);
+            self.update_highlights();
+            self.update_layout();
+            self.set_min_width();
         }
-
-        drop(state);
-        self.update_highlights();
-        self.update_layout();
-        self.set_min_width();
     }
 
     fn calculate_tile_start_positions(
@@ -114,7 +120,7 @@ impl PuzzleAreaPresenter {
 
         // Left
         if tiles.len() != positions.len() {
-            let end = puzzle_config.board_config.layout.dim().1 as i32;
+            let end = puzzle_config.board_config().layout().dim().1 as i32;
             let mut next_pos = CellOffset(1, 1);
             let mut next_tile_index = positions.len();
             while end > next_pos.1 {
@@ -123,16 +129,16 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.1 += tile.base.dim().1 as i32 + 1;
+                next_pos.1 += tile.base().dim().1 as i32 + 1;
                 next_tile_index += 1;
             }
         }
 
         // Right
         if tiles.len() != positions.len() {
-            let end = puzzle_config.board_config.layout.dim().1 as i32;
+            let end = puzzle_config.board_config().layout().dim().1 as i32;
             let mut next_pos = grid_config.board_offset_cells
-                + CellOffset(puzzle_config.board_config.layout.dim().0 as i32 + 1, 0);
+                + CellOffset(puzzle_config.board_config().layout().dim().0 as i32 + 1, 0);
             let mut next_tile_index = positions.len();
             while end > next_pos.1 {
                 positions.push(next_pos.clone());
@@ -140,7 +146,7 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.1 += tile.base.dim().1 as i32 + 1;
+                next_pos.1 += tile.base().dim().1 as i32 + 1;
                 next_tile_index += 1;
             }
         }
@@ -148,8 +154,9 @@ impl PuzzleAreaPresenter {
         // Bottom
         if tiles.len() != positions.len() {
             let end = grid_config.board_offset_cells.0 * 2
-                + puzzle_config.board_config.layout.dim().0 as i32;
-            let mut next_pos = CellOffset(1, 2 + puzzle_config.board_config.layout.dim().1 as i32);
+                + puzzle_config.board_config().layout().dim().0 as i32;
+            let mut next_pos =
+                CellOffset(1, 2 + puzzle_config.board_config().layout().dim().1 as i32);
             let mut next_tile_index = positions.len();
             while end > next_pos.0 {
                 positions.push(next_pos.clone());
@@ -157,7 +164,7 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.0 += tile.base.dim().0 as i32 + 1;
+                next_pos.0 += tile.base().dim().0 as i32 + 1;
                 next_tile_index += 1;
             }
         }
@@ -165,9 +172,11 @@ impl PuzzleAreaPresenter {
         // Buttom second row
         if tiles.len() != positions.len() {
             let end = grid_config.board_offset_cells.0 * 2
-                + puzzle_config.board_config.layout.dim().0 as i32;
-            let mut next_pos =
-                CellOffset(1, 2 + 4 + puzzle_config.board_config.layout.dim().1 as i32);
+                + puzzle_config.board_config().layout().dim().0 as i32;
+            let mut next_pos = CellOffset(
+                1,
+                2 + 4 + puzzle_config.board_config().layout().dim().1 as i32,
+            );
             let mut next_tile_index = positions.len();
             while end > next_pos.0 {
                 positions.push(next_pos.clone());
@@ -175,7 +184,7 @@ impl PuzzleAreaPresenter {
                     break;
                 }
                 let tile = &tiles[next_tile_index];
-                next_pos.0 += tile.base.dim().0 as i32 + 1;
+                next_pos.0 += tile.base().dim().0 as i32 + 1;
                 next_tile_index += 1;
             }
         }
@@ -198,14 +207,7 @@ impl PuzzleAreaPresenter {
     }
 
     fn update_cell_width(&self) {
-        let width = {
-            let data = self.data.borrow();
-            match &data.fixed {
-                Some(fixed) => fixed.parent().map(|w| w.width()).unwrap_or(0),
-                None => 0,
-            }
-        };
-
+        let width = self.window.width();
         let grid_config = &mut self.data.borrow_mut().grid_config;
         grid_config.cell_width_pixel = width as u32 / grid_config.grid_h_cell_count;
     }
@@ -213,31 +215,30 @@ impl PuzzleAreaPresenter {
     fn set_min_width(&self) {
         let min_board_elements_width = self.board_presenter.get_min_element_width();
         let data = self.data.borrow();
-        if let Some(fixed) = &data.fixed {
-            let fixed_min_width =
-                data.grid_config.grid_h_cell_count as i32 * min_board_elements_width;
-            fixed.set_width_request(fixed_min_width);
-        }
+        let fixed_min_width = data.grid_config.grid_h_cell_count as i32 * min_board_elements_width;
+        data.fixed.set_width_request(fixed_min_width);
     }
 
     fn clear_elements(&self) {
         let mut data = self.data.borrow_mut();
-        if let Some(fixed) = data.fixed.clone() {
-            data.elements_in_fixed
-                .drain(..)
-                .for_each(|e| fixed.remove(&e));
-            data.tile_views.clear();
-            data.board_view = None;
-        }
+        let fixed = data.fixed.clone();
+        data.elements_in_fixed
+            .drain(..)
+            .for_each(|e| fixed.remove(&e));
+        data.tile_views.clear();
+        data.board_view = None;
     }
 
     pub fn extract_puzzle_state(&self) -> Result<PuzzleState, String> {
         let state = get_state();
-        let mut state = PuzzleState::new(&state.puzzle_config, &state.target_selection);
+        let mut state = PuzzleState::new(
+            &state.puzzle_config.clone().unwrap(),
+            &state.puzzle_type_extension,
+        );
         let data = self.data.borrow();
         let board_position = data.grid_config.board_offset_cells;
 
-        for tile_view in &data.tile_views {
+        for (i, tile_view) in data.tile_views.iter().enumerate() {
             let tile_position = tile_view.position_cells.ok_or("Tile position not set")?;
             let tile_position = tile_position - board_position + CellOffset(1, 1);
             for (element, offset) in &tile_view.elements_with_offset {
@@ -268,6 +269,7 @@ impl PuzzleAreaPresenter {
                     state.grid[idx] = new;
                 } else {
                     let unused_tile = UnusedTile {
+                        id: i,
                         base: tile_view.tile_base.clone(),
                     };
                     state.unused_tiles.insert(unused_tile);
@@ -315,20 +317,5 @@ impl PuzzleAreaPresenter {
             .elements_in_fixed
             .iter()
             .for_each(|element| self.clear_highlight(element));
-    }
-}
-
-impl Default for PuzzleAreaPresenter {
-    fn default() -> Self {
-        let data = Rc::new(RefCell::new(PuzzleAreaData::default()));
-        let mut board_presenter = BoardPresenter::default();
-        board_presenter.set_data(data.clone());
-        let mut tile_presenter = TilePresenter::default();
-        tile_presenter.set_data(data.clone());
-        Self {
-            data,
-            board_presenter,
-            tile_presenter,
-        }
     }
 }

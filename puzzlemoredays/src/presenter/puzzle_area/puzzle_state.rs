@@ -1,8 +1,8 @@
+use crate::global::state::PuzzleTypeExtension;
 use crate::offset::CellOffset;
-use crate::puzzle::config::Target;
-use crate::puzzle::PuzzleConfig;
 use gtk::Widget;
 use ndarray::Array2;
+use puzzle_config::PuzzleConfig;
 use std::collections::HashSet;
 
 /// Represents data associated with a cell in the puzzle grid.
@@ -40,6 +40,8 @@ impl Default for Cell {
 /// Represents a tile that has not been placed on the puzzle grid.
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub struct UnusedTile {
+    /// Used to identify the tile when having multiple identical tiles.
+    pub id: usize,
     pub base: Array2<bool>,
 }
 
@@ -54,9 +56,12 @@ pub struct PuzzleState {
 }
 
 impl PuzzleState {
-    pub fn new(puzzle_config: &PuzzleConfig, target_selection: &Option<Target>) -> Self {
-        let board_config = &puzzle_config.board_config;
-        let layout = &board_config.layout;
+    pub fn new(
+        puzzle_config: &PuzzleConfig,
+        puzzle_type_extension: &Option<PuzzleTypeExtension>,
+    ) -> Self {
+        let board_config = &puzzle_config.board_config();
+        let layout = &board_config.layout();
 
         let dim = layout.dim();
         // Add border to have a zone where tiles are not allowed to be placed to indicate out-of-bounds
@@ -69,12 +74,7 @@ impl PuzzleState {
                 .get((board_index.0 as usize, board_index.1 as usize))
                 .unwrap_or(&false);
             let is_adjacent = Self::is_adjacent_to_board(board_index, puzzle_config);
-            let allowed = !(is_adjacent
-                || target_selection
-                    .iter()
-                    .flat_map(|target_selection| &target_selection.indices)
-                    .filter(|target_index| **target_index == board_index)
-                    .any(|_| true));
+            let allowed = !is_adjacent;
             *cell = Cell::Empty(CellData {
                 position: CellOffset(x as i32, y as i32),
                 is_on_board: on_board,
@@ -82,24 +82,28 @@ impl PuzzleState {
             });
         }
 
-        PuzzleState {
+        let mut puzzle_state = PuzzleState {
             grid,
             unused_tiles: HashSet::new(),
+        };
+        if let Some(extension) = puzzle_type_extension {
+            puzzle_state.handle_extension(extension);
         }
+        puzzle_state
     }
 
     fn is_adjacent_to_board(position: (i32, i32), puzzle_config: &PuzzleConfig) -> bool {
         const DELTAS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
         let this_is_on_board = puzzle_config
-            .board_config
-            .layout
+            .board_config()
+            .layout()
             .get::<(usize, usize)>((position.0 as usize, position.1 as usize).into())
             .unwrap_or(&false);
         for (dr, dc) in DELTAS.iter() {
             let neighbor_pos = ((position.0 + dr) as usize, (position.1 + dc) as usize);
             if let Some(neighbour_on_board) = puzzle_config
-                .board_config
-                .layout
+                .board_config()
+                .layout()
                 .get::<(usize, usize)>(neighbor_pos.into())
             {
                 if !this_is_on_board && *neighbour_on_board {
@@ -108,5 +112,27 @@ impl PuzzleState {
             }
         }
         false
+    }
+
+    fn handle_extension(&mut self, puzzle_type_extension: &PuzzleTypeExtension) {
+        match puzzle_type_extension {
+            PuzzleTypeExtension::Area {
+                target: Some(target),
+            } => {
+                for index in &target.indices {
+                    let cell = self.grid.get_mut((index.0 + 1, index.1 + 1));
+                    if let Some(cell) = cell {
+                        let data = match cell {
+                            Cell::Empty(data) => data,
+                            Cell::One(data, _) => data,
+                            Cell::Many(data, _) => data,
+                        };
+                        data.allowed = false;
+                        data.is_on_board = false;
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 }

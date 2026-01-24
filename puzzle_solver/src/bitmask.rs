@@ -1,5 +1,5 @@
 use ndarray::Array2;
-use std::ops::{BitAnd, BitOr, BitXor, Index, IndexMut};
+use std::ops::{BitAnd, BitOr, BitXor, Index};
 
 /// Must be the same as the bits in the primitive type used in the bitmask array.
 const BITS_IN_PRIMITIVE: usize = 128;
@@ -77,6 +77,7 @@ impl Bitmask {
     /// * `index`: Index of the bit to clear.
     ///
     /// returns: ()
+    #[allow(dead_code)]
     pub(crate) fn clear_bit(&mut self, index: usize) {
         let array_index = index / BITS_IN_PRIMITIVE;
         let bit_index = index % BITS_IN_PRIMITIVE;
