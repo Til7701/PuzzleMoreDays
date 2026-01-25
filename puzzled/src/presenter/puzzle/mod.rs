@@ -3,7 +3,7 @@ mod info;
 mod solver;
 
 use crate::application::PuzzledApplication;
-use crate::global::state::{get_state_mut, SolverState};
+use crate::global::state::{get_state, get_state_mut, SolverState};
 use crate::presenter::puzzle::extension::ExtensionPresenter;
 use crate::presenter::puzzle::info::PuzzleInfoPresenter;
 use crate::presenter::puzzle::solver::SolverStatePresenter;
@@ -11,7 +11,9 @@ use crate::presenter::puzzle_area::PuzzleAreaPresenter;
 use crate::solver::is_solved;
 use crate::view::create_solved_dialog;
 use crate::window::PuzzledWindow;
-use adw::prelude::AdwDialogExt;
+use adw::prelude::{AdwDialogExt, NavigationPageExt};
+use adw::NavigationPage;
+use gtk::prelude::GtkWindowExt;
 use log::debug;
 use std::rc::Rc;
 use std::time::Duration;
@@ -19,6 +21,7 @@ use std::time::Duration;
 #[derive(Clone)]
 pub struct PuzzlePresenter {
     window: PuzzledWindow,
+    puzzle_area_nav_page: NavigationPage,
     puzzle_info_presenter: PuzzleInfoPresenter,
     puzzle_area_presenter: PuzzleAreaPresenter,
     solver_state_presenter: SolverStatePresenter,
@@ -34,6 +37,7 @@ impl PuzzlePresenter {
 
         PuzzlePresenter {
             window: window.clone(),
+            puzzle_area_nav_page: window.puzzle_area_nav_page(),
             puzzle_info_presenter,
             puzzle_area_presenter,
             solver_state_presenter,
@@ -73,6 +77,13 @@ impl PuzzlePresenter {
                 }
             }
         }));
+        let state = get_state();
+        if let Some(collection) = &state.puzzle_collection
+            && let Some(puzzle_config) = &state.puzzle_config
+        {
+            let title = format!("{} - {}", collection.name(), puzzle_config.name());
+            self.puzzle_area_nav_page.set_title(&title);
+        }
     }
 
     fn on_tile_moved(&self) {
