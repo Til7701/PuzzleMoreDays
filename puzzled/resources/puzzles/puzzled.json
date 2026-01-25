@@ -6,6 +6,7 @@
     {
       "name": "Icon",
       "description": "The Puzzled Icon",
+      "difficulty": "Easy",
       "tiles": [
         "O4",
         "L3",

@@ -15,6 +15,7 @@
   "puzzles": [
     {
       "name": "Simple",
+      "difficulty": "Easy",
       "tiles": [
         "I3",
         "L3",
