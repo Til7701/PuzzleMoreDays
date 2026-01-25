@@ -4,11 +4,11 @@ use crate::presenter::navigation::NavigationPresenter;
 use crate::view::board::BoardView;
 use crate::view::tile::TileView;
 use crate::window::PuzzledWindow;
-use adw::gio;
 use adw::glib::{Variant, VariantTy};
 use adw::prelude::{ActionMapExtManual, ObjectExt};
+use adw::{gio, WrapBox};
 use gtk::prelude::{ActionableExt, BoxExt, FixedExt, WidgetExt};
-use gtk::{Align, Fixed, ListBox};
+use gtk::{Align, Fixed, Label, ListBox, Widget};
 use log::error;
 use puzzle_config::{BoardConfig, PuzzleConfig, PuzzleDifficultyConfig, TileConfig};
 
@@ -17,6 +17,13 @@ const CELL_SIZE: f64 = 20.0;
 #[derive(Clone)]
 pub struct PuzzleSelectionPresenter {
     navigation: NavigationPresenter,
+    puzzle_name_label: Label,
+    puzzle_description_label: Label,
+    collection_info_box: WrapBox,
+    puzzle_count_label: Label,
+    author_label: Label,
+    version_box: gtk::Box,
+    version_label: Label,
     puzzle_list: ListBox,
 }
 
@@ -24,6 +31,13 @@ impl PuzzleSelectionPresenter {
     pub fn new(window: &PuzzledWindow, navigation: NavigationPresenter) -> Self {
         PuzzleSelectionPresenter {
             navigation,
+            puzzle_name_label: window.puzzle_name_label(),
+            puzzle_description_label: window.puzzle_description_label(),
+            collection_info_box: window.collection_info_box(),
+            puzzle_count_label: window.puzzle_count_label(),
+            author_label: window.author_label(),
+            version_box: window.version_box(),
+            version_label: window.version_label(),
             puzzle_list: window.puzzle_list(),
         }
     }
@@ -51,6 +65,30 @@ impl PuzzleSelectionPresenter {
 
         let state = get_state();
         if let Some(collection) = &state.puzzle_collection {
+            self.puzzle_name_label.set_label(collection.name());
+            if let Some(description) = collection.description() {
+                self.puzzle_description_label.set_label(description);
+                self.puzzle_description_label.set_visible(true);
+            } else {
+                self.puzzle_description_label.set_visible(false);
+            }
+
+            let puzzle_count = collection.puzzles().len();
+            self.puzzle_count_label
+                .set_label(&format!("{}", puzzle_count));
+            self.author_label
+                .set_label(&format!("{}", collection.author()));
+            if let Some(version) = collection.version() {
+                self.version_label.set_label(&format!("{}", version));
+                if self.version_box.parent().is_none() {
+                    self.collection_info_box.append(&self.version_box);
+                }
+            } else {
+                if self.version_box.parent().is_some() {
+                    self.collection_info_box.remove(&self.version_box);
+                }
+            }
+
             for (i, puzzle) in collection.puzzles().iter().enumerate() {
                 let row = create_puzzle_row(i as u32, puzzle);
                 self.puzzle_list.append(&row);

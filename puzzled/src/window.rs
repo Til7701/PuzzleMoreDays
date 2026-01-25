@@ -29,14 +29,31 @@ mod imp {
     pub struct PuzzledWindow {
         #[template_child]
         pub navigation_view: TemplateChild<adw::NavigationView>,
+
         #[template_child]
         pub core_collection_list: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub community_collection_list: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub load_collection_button_row: TemplateChild<adw::ButtonRow>,
+
+        #[template_child]
+        pub puzzle_name_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub puzzle_description_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub collection_info_box: TemplateChild<adw::WrapBox>,
+        #[template_child]
+        pub puzzle_count_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub author_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub version_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub version_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub puzzle_list: TemplateChild<gtk::ListBox>,
+
         #[template_child]
         pub grid: TemplateChild<gtk::Fixed>,
         #[template_child]
@@ -99,6 +116,34 @@ impl PuzzledWindow {
 
     pub fn load_collection_button_row(&self) -> adw::ButtonRow {
         self.imp().load_collection_button_row.clone()
+    }
+
+    pub fn puzzle_name_label(&self) -> gtk::Label {
+        self.imp().puzzle_name_label.clone()
+    }
+
+    pub fn puzzle_description_label(&self) -> gtk::Label {
+        self.imp().puzzle_description_label.clone()
+    }
+
+    pub fn collection_info_box(&self) -> adw::WrapBox {
+        self.imp().collection_info_box.clone()
+    }
+
+    pub fn puzzle_count_label(&self) -> gtk::Label {
+        self.imp().puzzle_count_label.clone()
+    }
+
+    pub fn author_label(&self) -> gtk::Label {
+        self.imp().author_label.clone()
+    }
+
+    pub fn version_box(&self) -> gtk::Box {
+        self.imp().version_box.clone()
+    }
+
+    pub fn version_label(&self) -> gtk::Label {
+        self.imp().version_label.clone()
     }
 
     pub fn puzzle_list(&self) -> gtk::ListBox {
