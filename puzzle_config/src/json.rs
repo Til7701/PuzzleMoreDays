@@ -1,3 +1,4 @@
+use crate::config::difficulty::PuzzleDifficultyConfig;
 use crate::config::tile;
 use crate::{
     AreaConfig, AreaValueFormatter, BoardConfig, PuzzleConfig, PuzzleConfigCollection, ReadError,
@@ -14,6 +15,7 @@ struct PuzzleCollection {
     name: String,
     description: Option<String>,
     author: String,
+    version: Option<String>,
     /// Custom tiles to override or extend predefined tiles.
     custom_tiles: Option<HashMap<String, Tile>>,
     custom_boards: Option<HashMap<String, Board>>,
@@ -24,6 +26,7 @@ struct PuzzleCollection {
 struct Puzzle {
     name: String,
     description: Option<String>,
+    difficulty: Option<PuzzleDifficulty>,
     /// The tiles to use in this puzzle. Can reference predefined tiles, custom tiles or define
     /// them inline.
     tiles: Vec<Tile>,
@@ -31,6 +34,14 @@ struct Puzzle {
     /// Additional metadata for the puzzle.
     /// This is shown in the Puzzle Info dialog and may contain solution statistics or other info.
     additional_info: Option<HashMap<String, String>>,
+}
+
+#[derive(Deserialize)]
+enum PuzzleDifficulty {
+    Easy,
+    Medium,
+    Hard,
+    Expert,
 }
 
 #[derive(Deserialize)]
@@ -122,6 +133,8 @@ fn convert(puzzle_collection: PuzzleCollection) -> Result<PuzzleConfigCollection
 
     let mut puzzle_configs = Vec::new();
     for puzzle in puzzle_collection.puzzles {
+        let difficulty_config = convert_difficulty(&puzzle.difficulty);
+
         let mut tiles = Vec::new();
         for (i, tile) in puzzle.tiles.into_iter().enumerate() {
             let tile_name = format!("puzzle '{}' tile #{}", puzzle.name, i + 1);
@@ -133,6 +146,7 @@ fn convert(puzzle_collection: PuzzleCollection) -> Result<PuzzleConfigCollection
         let puzzle_config = PuzzleConfig::new(
             puzzle.name,
             puzzle.description,
+            difficulty_config,
             tiles,
             board_config,
             puzzle.additional_info,
@@ -144,8 +158,19 @@ fn convert(puzzle_collection: PuzzleCollection) -> Result<PuzzleConfigCollection
         puzzle_collection.name,
         puzzle_collection.description,
         puzzle_collection.author,
+        puzzle_collection.version,
         puzzle_configs,
     ))
+}
+
+fn convert_difficulty(difficulty: &Option<PuzzleDifficulty>) -> Option<PuzzleDifficultyConfig> {
+    match difficulty {
+        Some(PuzzleDifficulty::Easy) => Some(PuzzleDifficultyConfig::Easy),
+        Some(PuzzleDifficulty::Medium) => Some(PuzzleDifficultyConfig::Medium),
+        Some(PuzzleDifficulty::Hard) => Some(PuzzleDifficultyConfig::Hard),
+        Some(PuzzleDifficulty::Expert) => Some(PuzzleDifficultyConfig::Expert),
+        None => None,
+    }
 }
 
 fn convert_tile(

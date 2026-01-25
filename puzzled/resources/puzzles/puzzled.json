@@ -1,11 +1,12 @@
 {
-  "config_version": 1,
+  "spec": 1,
   "name": "Puzzled",
   "author": "Puzzled",
   "puzzles": [
     {
       "name": "Icon",
       "description": "The Puzzled Icon",
+      "difficulty": "Easy",
       "tiles": [
         "O4",
         "L3",

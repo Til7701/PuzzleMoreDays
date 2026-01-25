@@ -1,4 +1,5 @@
 use crate::config::board::BoardConfig;
+use crate::config::difficulty::PuzzleDifficultyConfig;
 use crate::TileConfig;
 use std::collections::HashMap;
 
@@ -10,6 +11,7 @@ pub struct PuzzleConfig {
     /// Name of the puzzle to show in the UI.
     name: String,
     description: Option<String>,
+    difficulty: Option<PuzzleDifficultyConfig>,
     /// The tiles that can be placed on the board.
     tiles: Vec<TileConfig>,
     /// Configuration of the board layout and areas.
@@ -37,6 +39,7 @@ impl PuzzleConfig {
     pub fn new(
         name: String,
         description: Option<String>,
+        difficulty: Option<PuzzleDifficultyConfig>,
         tiles: Vec<TileConfig>,
         board_config: BoardConfig,
         additional_info: Option<HashMap<String, String>>,
@@ -44,6 +47,7 @@ impl PuzzleConfig {
         PuzzleConfig {
             name,
             description,
+            difficulty,
             board_config,
             tiles,
             additional_info,
@@ -56,6 +60,10 @@ impl PuzzleConfig {
 
     pub fn description(&self) -> &Option<String> {
         &self.description
+    }
+
+    pub fn difficulty(&self) -> &Option<PuzzleDifficultyConfig> {
+        &self.difficulty
     }
 
     pub fn tiles(&self) -> &Vec<TileConfig> {

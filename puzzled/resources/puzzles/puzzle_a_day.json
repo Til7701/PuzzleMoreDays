@@ -1,5 +1,5 @@
 {
-  "config_version": 1,
+  "spec": 1,
   "name": "Puzzle a Day",
   "author": "Puzzled",
   "custom_tiles": {
@@ -12,6 +12,7 @@
     {
       "name": "Default",
       "description": "A puzzle for each day of the month.",
+      "difficulty": "Medium",
       "tiles": [
         "Z5",
         "L5",
@@ -85,6 +86,7 @@
     {
       "name": "Year",
       "description": "A puzzle for each day of the month for two digit years.",
+      "difficulty": "Hard",
       "tiles": [
         "Z5",
         "L5",
