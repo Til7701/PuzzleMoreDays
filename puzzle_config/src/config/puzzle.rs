@@ -62,6 +62,10 @@ impl PuzzleConfig {
         &self.description
     }
 
+    pub fn difficulty(&self) -> &Option<PuzzleDifficultyConfig> {
+        &self.difficulty
+    }
+
     pub fn tiles(&self) -> &Vec<TileConfig> {
         &self.tiles
     }
