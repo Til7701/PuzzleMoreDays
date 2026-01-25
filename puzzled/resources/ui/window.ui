@@ -206,8 +206,7 @@
                     </object>
                 </child>
                 <child>
-                    <object class="AdwNavigationPage">
-                        <property name="title" translatable="yes">Puzzle Area</property>
+                    <object class="AdwNavigationPage" id="puzzle_area_nav_page">
                         <property name="tag">puzzle-area</property>
                         <property name="child">
                             <object class="AdwToolbarView">

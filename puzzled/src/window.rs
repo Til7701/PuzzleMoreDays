@@ -29,6 +29,8 @@ mod imp {
     pub struct PuzzledWindow {
         #[template_child]
         pub navigation_view: TemplateChild<adw::NavigationView>,
+        #[template_child]
+        pub puzzle_area_nav_page: TemplateChild<adw::NavigationPage>,
 
         #[template_child]
         pub core_collection_list: TemplateChild<gtk::ListBox>,
@@ -104,6 +106,10 @@ impl PuzzledWindow {
 
     pub fn navigation_view(&self) -> adw::NavigationView {
         self.imp().navigation_view.clone()
+    }
+
+    pub fn puzzle_area_nav_page(&self) -> adw::NavigationPage {
+        self.imp().puzzle_area_nav_page.clone()
     }
 
     pub fn core_collection_list(&self) -> gtk::ListBox {
