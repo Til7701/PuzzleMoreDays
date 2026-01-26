@@ -76,7 +76,7 @@ impl SolverStatePresenter {
                 let solver_enabled = enable_solver.is_active();
                 if solver_enabled {
                 } else {
-                    self_clone.display_solver_state(&SolverState::Disabled {});
+                    self_clone.display_solver_state(&SolverState::Initial {});
                 }
             }
         });
@@ -87,6 +87,8 @@ impl SolverStatePresenter {
     pub fn calculate_solvability_if_enabled(&self, puzzle_state: &mut PuzzleState) {
         if self.preferences.get(SolverEnabled) {
             self.calculate_solvability(puzzle_state);
+        } else {
+            self.display_solver_state(&SolverState::Initial {});
         }
     }
 
@@ -142,18 +144,6 @@ impl SolverStatePresenter {
                 self.solver_status_button
                     .set_icon_name("circle-outline-thick-symbolic");
             }
-            SolverState::NotAvailable => {
-                self.solver_status_button
-                    .set_tooltip_text(Some("Solver: Not Available without Target Day"));
-                self.solver_status_button
-                    .set_icon_name("stop-sign-large-outline-symbolic");
-            }
-            SolverState::Disabled => {
-                self.solver_status_button
-                    .set_tooltip_text(Some("Solver: Disabled"));
-                self.solver_status_button
-                    .set_icon_name("stop-sign-large-outline-symbolic");
-            }
             SolverState::Running { .. } => {
                 self.solver_status_button
                     .set_tooltip_text(Some("Solver: Running..."));
@@ -163,12 +153,12 @@ impl SolverStatePresenter {
             SolverState::Done { solvable, .. } => {
                 if *solvable {
                     self.solver_status_button
-                        .set_tooltip_text(Some("Solver: Solvable for current Target Day!"));
+                        .set_tooltip_text(Some("Solver: Solvable for current Target!"));
                     self.solver_status_button
                         .set_icon_name("check-round-outline2-symbolic");
                 } else {
                     self.solver_status_button
-                        .set_tooltip_text(Some("Solver: Unsolvable for current Target Day!"));
+                        .set_tooltip_text(Some("Solver: Unsolvable for current Target!"));
                     self.solver_status_button
                         .set_icon_name("cross-large-circle-outline-symbolic");
                 }

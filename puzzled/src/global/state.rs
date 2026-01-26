@@ -58,7 +58,7 @@ impl Default for State {
             puzzle_collection: None,
             puzzle_config: None,
             puzzle_type_extension: None,
-            solver_state: SolverState::Disabled,
+            solver_state: SolverState::Initial,
         }
     }
 }
@@ -68,10 +68,6 @@ impl Default for State {
 pub enum SolverState {
     /// Solver did not run yet. This is the state at application start.
     Initial,
-    /// When no target day is selected, the solver is not available.
-    NotAvailable,
-    /// Solver is disabled in preferences.
-    Disabled,
     /// Solver is currently running.
     /// It can be canceled using the provided cancellation token.
     Running {

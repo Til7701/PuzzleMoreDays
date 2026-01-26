@@ -76,6 +76,7 @@ impl PuzzlePresenter {
                 }
             }
         }));
+        self.on_tile_moved();
         let state = get_state();
         if let Some(collection) = &state.puzzle_collection
             && let Some(puzzle_config) = &state.puzzle_config
