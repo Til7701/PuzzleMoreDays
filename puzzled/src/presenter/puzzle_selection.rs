@@ -58,7 +58,9 @@ impl PuzzleSelectionPresenter {
         app.add_action_entries([collection_item_activated]);
     }
 
-    pub fn setup(&self) {}
+    pub fn setup(&self) {
+        self.show_collection();
+    }
 
     pub fn show_collection(&self) {
         self.puzzle_list.remove_all();

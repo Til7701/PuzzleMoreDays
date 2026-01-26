@@ -6,203 +6,220 @@
         <property name="title" translatable="yes">Puzzled</property>
         <property name="default-width">1280</property>
         <property name="default-height">720</property>
+        <child>
+            <object class="AdwBreakpoint">
+                <condition>max-width: 400sp</condition>
+                <setter object="split_view" property="collapsed">True</setter>
+            </object>
+        </child>
         <property name="content">
             <object class="AdwNavigationView" id="navigation_view">
                 <child>
                     <object class="AdwNavigationPage">
-                        <property name="title" translatable="yes">Puzzled - Collections</property>
-                        <property name="tag">collection-selection</property>
-                        <property name="child">
-                            <object class="AdwToolbarView">
-                                <child type="top">
-                                    <object class="AdwHeaderBar">
-                                        <child type="end">
-                                            <object class="GtkMenuButton">
-                                                <property name="primary">True</property>
-                                                <property name="icon-name">open-menu-symbolic</property>
-                                                <property name="tooltip-text" translatable="yes">Main Menu</property>
-                                                <property name="menu-model">primary_menu</property>
-                                            </object>
-                                        </child>
-                                    </object>
-                                </child>
-                                <property name="content">
-                                    <object class="GtkScrolledWindow">
-                                        <child>
-                                            <object class="AdwClamp">
-                                                <child>
-                                                    <object class="GtkBox">
-                                                        <property name="orientation">vertical</property>
-                                                        <property name="spacing">12</property>
-                                                        <property name="margin-top">8</property>
-                                                        <property name="margin-bottom">8</property>
+                        <child>
+                            <object class="AdwNavigationSplitView" id="split_view">
+                                <property name="sidebar">
+                                    <object class="AdwNavigationPage">
+                                        <property name="title" translatable="yes">Puzzled</property>
+                                        <property name="tag">collection-selection</property>
+                                        <property name="child">
+                                            <object class="AdwToolbarView">
+                                                <child type="top">
+                                                    <object class="AdwHeaderBar">
+                                                    </object>
+                                                </child>
+                                                <property name="content">
+                                                    <object class="GtkScrolledWindow">
                                                         <child>
-                                                            <object class="GtkLabel">
-                                                                <property name="label" translatable="yes">Core Collections</property>
-                                                                <style>
-                                                                    <class name="title-2"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkListBox" id="core_collection_list">
-                                                                <style>
-                                                                    <class name="boxed-list"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkLabel">
-                                                                <property name="label" translatable="yes">Community Collections</property>
-                                                                <style>
-                                                                    <class name="title-2"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkListBox" id="community_collection_list">
-                                                                <style>
-                                                                    <class name="boxed-list"/>
-                                                                </style>
+                                                            <object class="AdwClamp">
                                                                 <child>
-                                                                    <object class="AdwButtonRow" id="load_collection_button_row">
-                                                                        <property name="title" translatable="yes">Load Collection</property>
-                                                                        <property name="action-name">app.load_collection</property>
-                                                                        <property name="selectable">False</property>
+                                                                    <object class="GtkBox">
+                                                                        <property name="orientation">vertical</property>
+                                                                        <property name="spacing">12</property>
+                                                                        <property name="margin-top">8</property>
+                                                                        <property name="margin-bottom">8</property>
+                                                                        <property name="margin-start">8</property>
+                                                                        <property name="margin-end">8</property>
+                                                                        <child>
+                                                                            <object class="GtkLabel">
+                                                                                <property name="label" translatable="yes">Core Collections</property>
+                                                                                <style>
+                                                                                    <class name="title-3"/>
+                                                                                </style>
+                                                                            </object>
+                                                                        </child>
+                                                                        <child>
+                                                                            <object class="GtkListBox" id="core_collection_list">
+                                                                                <style>
+                                                                                    <class name="boxed-list"/>
+                                                                                </style>
+                                                                            </object>
+                                                                        </child>
+                                                                        <child>
+                                                                            <object class="GtkLabel">
+                                                                                <property name="label" translatable="yes">Community Collections</property>
+                                                                                <style>
+                                                                                    <class name="title-3"/>
+                                                                                </style>
+                                                                            </object>
+                                                                        </child>
+                                                                        <child>
+                                                                            <object class="GtkListBox" id="community_collection_list">
+                                                                                <style>
+                                                                                    <class name="boxed-list"/>
+                                                                                </style>
+                                                                                <child>
+                                                                                    <object class="AdwButtonRow" id="load_collection_button_row">
+                                                                                        <property name="title" translatable="yes">Load Collection</property>
+                                                                                        <property name="action-name">app.load_collection</property>
+                                                                                        <property name="selectable">False</property>
+                                                                                    </object>
+                                                                                </child>
+                                                                            </object>
+                                                                        </child>
                                                                     </object>
                                                                 </child>
                                                             </object>
                                                         </child>
                                                     </object>
-                                                </child>
+                                                </property>
                                             </object>
-                                        </child>
+                                        </property>
                                     </object>
                                 </property>
-                            </object>
-                        </property>
-                    </object>
-                </child>
-                <child>
-                    <object class="AdwNavigationPage">
-                        <property name="title" translatable="yes">Puzzle Selection</property>
-                        <property name="tag">puzzle-selection</property>
-                        <property name="child">
-                            <object class="AdwToolbarView">
-                                <child type="top">
-                                    <object class="AdwHeaderBar"/>
-                                </child>
                                 <property name="content">
-                                    <object class="GtkScrolledWindow">
-                                        <child>
-                                            <object class="AdwClamp">
-                                                <child>
-                                                    <object class="GtkBox">
-                                                        <property name="orientation">vertical</property>
-                                                        <property name="spacing">12</property>
-                                                        <property name="margin-top">8</property>
-                                                        <property name="margin-bottom">8</property>
-                                                        <child>
-                                                            <object class="GtkLabel" id="puzzle_name_label">
-                                                                <style>
-                                                                    <class name="title-2"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkLabel" id="puzzle_description_label">
-                                                                <style>
-                                                                    <class name="dimmed"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="AdwWrapBox" id="collection_info_box">
-                                                                <property name="child-spacing">4</property>
-                                                                <property name="line-spacing">4</property>
-                                                                <child>
-                                                                    <object class="GtkBox">
-                                                                        <property name="spacing">4</property>
-                                                                        <property name="tooltip-text">Number of puzzles in this collection</property>
-                                                                        <style>
-                                                                            <class name="info-pill"/>
-                                                                        </style>
-                                                                        <child>
-                                                                            <object class="GtkImage">
-                                                                                <property name="icon-name">puzzle-piece-symbolic</property>
-                                                                                <style>
-                                                                                    <class name="accent"/>
-                                                                                </style>
-                                                                            </object>
-                                                                        </child>
-                                                                        <child>
-                                                                            <object class="GtkLabel" id="puzzle_count_label">
-                                                                                <style>
-                                                                                    <class name="numeric"/>
-                                                                                </style>
-                                                                            </object>
-                                                                        </child>
-                                                                    </object>
-                                                                </child>
-                                                                <child>
-                                                                    <object class="GtkBox">
-                                                                        <property name="spacing">4</property>
-                                                                        <property name="tooltip-text">Author of this puzzle collection</property>
-                                                                        <style>
-                                                                            <class name="info-pill"/>
-                                                                        </style>
-                                                                        <child>
-                                                                            <object class="GtkImage">
-                                                                                <property name="icon-name">avatar-default</property>
-                                                                                <style>
-                                                                                    <class name="accent"/>
-                                                                                </style>
-                                                                            </object>
-                                                                        </child>
-                                                                        <child>
-                                                                            <object class="GtkLabel" id="author_label">
-                                                                            </object>
-                                                                        </child>
-                                                                    </object>
-                                                                </child>
-                                                                <child>
-                                                                    <object class="GtkBox" id="version_box">
-                                                                        <property name="spacing">4</property>
-                                                                        <property name="tooltip-text">Version of the collection</property>
-                                                                        <style>
-                                                                            <class name="info-pill"/>
-                                                                        </style>
-                                                                        <child>
-                                                                            <object class="GtkImage">
-                                                                                <property name="icon-name">commit-horizontal-symbolic</property>
-                                                                                <style>
-                                                                                    <class name="accent"/>
-                                                                                </style>
-                                                                            </object>
-                                                                        </child>
-                                                                        <child>
-                                                                            <object class="GtkLabel" id="version_label">
-                                                                            </object>
-                                                                        </child>
-                                                                    </object>
-                                                                </child>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkListBox" id="puzzle_list">
-                                                                <style>
-                                                                    <class name="boxed-list"/>
-                                                                </style>
+                                    <object class="AdwNavigationPage">
+                                        <property name="title" translatable="yes">Puzzle Selection</property>
+                                        <property name="tag">puzzle-selection</property>
+                                        <property name="child">
+                                            <object class="AdwToolbarView">
+                                                <child type="top">
+                                                    <object class="AdwHeaderBar">
+                                                        <child type="end">
+                                                            <object class="GtkMenuButton">
+                                                                <property name="primary">True</property>
+                                                                <property name="icon-name">open-menu-symbolic</property>
+                                                                <property name="tooltip-text" translatable="yes">Main Menu</property>
+                                                                <property name="menu-model">primary_menu</property>
                                                             </object>
                                                         </child>
                                                     </object>
                                                 </child>
+                                                <property name="content">
+                                                    <object class="GtkScrolledWindow">
+                                                        <child>
+                                                            <object class="AdwClamp">
+                                                                <child>
+                                                                    <object class="GtkBox">
+                                                                        <property name="orientation">vertical</property>
+                                                                        <property name="spacing">12</property>
+                                                                        <property name="margin-top">8</property>
+                                                                        <property name="margin-bottom">8</property>
+                                                                        <child>
+                                                                            <object class="GtkLabel" id="puzzle_name_label">
+                                                                                <style>
+                                                                                    <class name="title-2"/>
+                                                                                </style>
+                                                                            </object>
+                                                                        </child>
+                                                                        <child>
+                                                                            <object class="GtkLabel" id="puzzle_description_label">
+                                                                                <style>
+                                                                                    <class name="dimmed"/>
+                                                                                </style>
+                                                                            </object>
+                                                                        </child>
+                                                                        <child>
+                                                                            <object class="AdwWrapBox" id="collection_info_box">
+                                                                                <property name="child-spacing">4</property>
+                                                                                <property name="line-spacing">4</property>
+                                                                                <child>
+                                                                                    <object class="GtkBox">
+                                                                                        <property name="spacing">4</property>
+                                                                                        <property name="tooltip-text">Number of puzzles in this collection</property>
+                                                                                        <style>
+                                                                                            <class name="info-pill"/>
+                                                                                        </style>
+                                                                                        <child>
+                                                                                            <object class="GtkImage">
+                                                                                                <property name="icon-name">puzzle-piece-symbolic</property>
+                                                                                                <style>
+                                                                                                    <class name="accent"/>
+                                                                                                </style>
+                                                                                            </object>
+                                                                                        </child>
+                                                                                        <child>
+                                                                                            <object class="GtkLabel" id="puzzle_count_label">
+                                                                                                <style>
+                                                                                                    <class name="numeric"/>
+                                                                                                </style>
+                                                                                            </object>
+                                                                                        </child>
+                                                                                    </object>
+                                                                                </child>
+                                                                                <child>
+                                                                                    <object class="GtkBox">
+                                                                                        <property name="spacing">4</property>
+                                                                                        <property name="tooltip-text">Author of this puzzle collection</property>
+                                                                                        <style>
+                                                                                            <class name="info-pill"/>
+                                                                                        </style>
+                                                                                        <child>
+                                                                                            <object class="GtkImage">
+                                                                                                <property name="icon-name">avatar-default</property>
+                                                                                                <style>
+                                                                                                    <class name="accent"/>
+                                                                                                </style>
+                                                                                            </object>
+                                                                                        </child>
+                                                                                        <child>
+                                                                                            <object class="GtkLabel" id="author_label">
+                                                                                            </object>
+                                                                                        </child>
+                                                                                    </object>
+                                                                                </child>
+                                                                                <child>
+                                                                                    <object class="GtkBox" id="version_box">
+                                                                                        <property name="spacing">4</property>
+                                                                                        <property name="tooltip-text">Version of the collection</property>
+                                                                                        <style>
+                                                                                            <class name="info-pill"/>
+                                                                                        </style>
+                                                                                        <child>
+                                                                                            <object class="GtkImage">
+                                                                                                <property name="icon-name">commit-horizontal-symbolic</property>
+                                                                                                <style>
+                                                                                                    <class name="accent"/>
+                                                                                                </style>
+                                                                                            </object>
+                                                                                        </child>
+                                                                                        <child>
+                                                                                            <object class="GtkLabel" id="version_label">
+                                                                                            </object>
+                                                                                        </child>
+                                                                                    </object>
+                                                                                </child>
+                                                                            </object>
+                                                                        </child>
+                                                                        <child>
+                                                                            <object class="GtkListBox" id="puzzle_list">
+                                                                                <style>
+                                                                                    <class name="boxed-list"/>
+                                                                                </style>
+                                                                            </object>
+                                                                        </child>
+                                                                    </object>
+                                                                </child>
+                                                            </object>
+                                                        </child>
+                                                    </object>
+                                                </property>
                                             </object>
-                                        </child>
+                                        </property>
                                     </object>
                                 </property>
                             </object>
-                        </property>
+                        </child>
                     </object>
                 </child>
                 <child>
@@ -235,6 +252,14 @@
                                             <object class="GtkButton" id="target_selection_button">
                                                 <property name="label" translatable="yes">No Target Selected</property>
                                                 <property name="action-name">app.select_target</property>
+                                            </object>
+                                        </child>
+                                        <child type="end">
+                                            <object class="GtkMenuButton">
+                                                <property name="primary">True</property>
+                                                <property name="icon-name">open-menu-symbolic</property>
+                                                <property name="tooltip-text" translatable="yes">Main Menu</property>
+                                                <property name="menu-model">primary_menu</property>
                                             </object>
                                         </child>
                                     </object>

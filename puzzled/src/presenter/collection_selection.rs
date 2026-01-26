@@ -224,18 +224,6 @@ fn create_collection_row(id: CollectionId, collection: &PuzzleConfigCollection) 
     let name_label: gtk::Label = builder.object("name").expect("Missing `name` in resource");
     name_label.set_label(collection.name());
 
-    let description_label: gtk::Label = builder
-        .object("description")
-        .expect("Missing `description` in resource");
-    if let Some(description) = collection.description() {
-        description_label.set_label(description);
-    } else {
-        let outer_box: gtk::Box = builder
-            .object("outer_box")
-            .expect("Missing `outer_box` in resource");
-        outer_box.remove(&description_label);
-    }
-
     let puzzle_count_label: gtk::Label = builder
         .object("puzzle_count")
         .expect("Missing `puzzle_count` in resource");

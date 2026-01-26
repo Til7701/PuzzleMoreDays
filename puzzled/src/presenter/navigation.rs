@@ -33,7 +33,6 @@ impl NavigationPresenter {
     pub fn show_puzzle_selection(&self) {
         if let Some(presenters) = &self.presenters.borrow().as_ref() {
             presenters.puzzle_selection.show_collection();
-            self.navigation_view.push_by_tag("puzzle-selection");
         }
     }
 

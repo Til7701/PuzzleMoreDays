@@ -18,16 +18,7 @@
                     <object class="GtkLabel" id="name">
                         <property name="halign">start</property>
                         <style>
-                            <class name="title-3"/>
-                        </style>
-                    </object>
-                </child>
-                <child>
-                    <object class="GtkLabel" id="description">
-                        <property name="halign">start</property>
-                        <property name="wrap">True</property>
-                        <style>
-                            <class name="dimmed"/>
+                            <class name="title-4"/>
                         </style>
                     </object>
                 </child>
