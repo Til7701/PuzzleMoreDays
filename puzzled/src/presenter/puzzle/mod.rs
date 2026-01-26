@@ -3,7 +3,7 @@ mod info;
 mod solver;
 
 use crate::application::PuzzledApplication;
-use crate::global::state::{get_state, get_state_mut, SolverState};
+use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension, SolverState};
 use crate::presenter::puzzle::extension::ExtensionPresenter;
 use crate::presenter::puzzle::info::PuzzleInfoPresenter;
 use crate::presenter::puzzle::solver::SolverStatePresenter;
@@ -14,6 +14,7 @@ use crate::view::puzzle_area_page::PuzzleAreaPage;
 use crate::window::PuzzledWindow;
 use adw::prelude::{AdwDialogExt, NavigationPageExt};
 use log::debug;
+use puzzle_config::BoardConfig;
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -68,9 +69,7 @@ impl PuzzlePresenter {
                 debug!("Extension target changed, re-evaluating puzzle solvability");
                 let puzzle_state = self_clone.puzzle_area_presenter.extract_puzzle_state();
                 if let Ok(mut puzzle_state) = puzzle_state {
-                    self_clone
-                        .solver_state_presenter
-                        .calculate_solvability_if_enabled(&mut puzzle_state);
+                    self_clone.solver_state_presenter.update(&mut puzzle_state);
                     self_clone.puzzle_area_presenter.update_layout();
                     self_clone.puzzle_area_presenter.update_highlights();
                 }
@@ -103,11 +102,9 @@ impl PuzzlePresenter {
                         duration: Duration::ZERO,
                     });
                 self.show_solved_dialog();
-                return;
+            } else {
+                self.solver_state_presenter.update(&mut puzzle_state);
             }
-
-            self.solver_state_presenter
-                .calculate_solvability_if_enabled(&mut puzzle_state);
         }
     }
 

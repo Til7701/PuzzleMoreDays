@@ -1,7 +1,7 @@
 use crate::application::PuzzledApplication;
 use crate::global::settings::Preferences;
 use crate::global::settings::SolverEnabled;
-use crate::global::state::{get_state, get_state_mut, SolverState};
+use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension, SolverState};
 use crate::presenter::puzzle_area::puzzle_state::PuzzleState;
 use crate::solver;
 use crate::solver::interrupt_solver_call;
@@ -82,6 +82,21 @@ impl SolverStatePresenter {
         });
 
         dialog.present(Some(&self.window));
+    }
+
+    pub fn update(&self, puzzle_state: &mut PuzzleState) {
+        let state = get_state();
+        let calculate_solvability = match &state.puzzle_type_extension {
+            None => true,
+            Some(PuzzleTypeExtension::Simple) => true,
+            Some(PuzzleTypeExtension::Area { target, .. }) => target.is_some(),
+        };
+        drop(state);
+        if calculate_solvability {
+            self.calculate_solvability_if_enabled(puzzle_state);
+        } else {
+            self.display_solver_state(&SolverState::Initial {});
+        }
     }
 
     pub fn calculate_solvability_if_enabled(&self, puzzle_state: &mut PuzzleState) {
