@@ -118,7 +118,10 @@ impl PuzzledApplication {
         let how_to_play_action = gio::ActionEntry::builder("how_to_play")
             .activate(move |app: &Self, _, _| app.show_how_to_play())
             .build();
-        self.add_action_entries([quit_action, about_action, how_to_play_action]);
+        let preferences = gio::ActionEntry::builder("preferences")
+            .activate(move |app: &Self, _, _| app.show_preferences())
+            .build();
+        self.add_action_entries([quit_action, about_action, how_to_play_action, preferences]);
     }
 
     fn show_about(&self) {
@@ -136,6 +139,8 @@ impl PuzzledApplication {
 
         about.present(Some(&window));
     }
+
+    fn show_preferences(&self) {}
 
     fn show_how_to_play(&self) {
         const RESOURCE_PATH: &str = "/de/til7701/Puzzled/how-to-play-dialog.ui";

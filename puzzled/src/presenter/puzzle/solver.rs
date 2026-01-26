@@ -1,5 +1,5 @@
 use crate::application::PuzzledApplication;
-use crate::global::settings::SettingKey;
+use crate::global::settings::Preferences;
 use crate::global::settings::SolverEnabled;
 use crate::global::state::{get_state, get_state_mut, SolverState};
 use crate::presenter::puzzle_area::puzzle_state::PuzzleState;
@@ -19,11 +19,13 @@ use tokio_util::sync::CancellationToken;
 pub struct SolverStatePresenter {
     window: PuzzledWindow,
     solver_status_button: Button,
+    preferences: Preferences,
 }
 
 impl SolverStatePresenter {
     pub fn new(window: &PuzzledWindow) -> Self {
         SolverStatePresenter {
+            preferences: Preferences::default(),
             window: window.clone(),
             solver_status_button: window.puzzle_area_nav_page().solver_state().clone(),
         }
@@ -52,7 +54,8 @@ impl SolverStatePresenter {
             .object::<adw::SwitchRow>("enable_solver")
             .expect("Missing `enable_solver` in resource");
         let state = get_state();
-        SolverEnabled.bind(&enable_solver, "active");
+        self.preferences
+            .bind(SolverEnabled, &enable_solver, "active");
 
         if let SolverState::Done {
             solvable: _,
@@ -82,7 +85,7 @@ impl SolverStatePresenter {
     }
 
     pub fn calculate_solvability_if_enabled(&self, puzzle_state: &mut PuzzleState) {
-        if SolverEnabled.get() {
+        if self.preferences.get(SolverEnabled) {
             self.calculate_solvability(puzzle_state);
         }
     }
