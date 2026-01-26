@@ -7,7 +7,7 @@ use adw::gio::{Cancellable, File};
 use adw::glib::{Variant, VariantTy};
 use adw::prelude::{ActionMapExtManual, AdwDialogExt, AlertDialogExt, FileExtManual};
 use adw::{gio, AlertDialog, ButtonRow, ResponseAppearance};
-use gtk::prelude::{ActionableExt, BoxExt};
+use gtk::prelude::ActionableExt;
 use gtk::ListBox;
 use log::{debug, error};
 use puzzle_config::ReadError::FileReadError;
@@ -24,12 +24,13 @@ pub struct CollectionSelectionPresenter {
 
 impl CollectionSelectionPresenter {
     pub fn new(window: &PuzzledWindow, navigation: NavigationPresenter) -> Self {
+        let page = window.collection_selection_nav_page();
         CollectionSelectionPresenter {
             window: window.clone(),
             navigation,
-            core_collection_list: window.core_collection_list(),
-            community_collection_list: window.community_collection_list(),
-            load_collection_button_row: window.load_collection_button_row(),
+            core_collection_list: page.core_collection_list(),
+            community_collection_list: page.community_collection_list(),
+            load_collection_button_row: page.load_collection_button_row(),
         }
     }
 
