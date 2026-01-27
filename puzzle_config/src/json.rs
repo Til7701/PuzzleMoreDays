@@ -176,7 +176,6 @@ fn convert(puzzle_collection: PuzzleCollection) -> Result<PuzzleConfigCollection
     ))
 }
 
-
 fn rotate_board_to_landscape<T>(arr: Array2<T>) -> Array2<T> {
     let shape = arr.shape();
     if shape.len() == 2 {
@@ -233,7 +232,6 @@ fn validate_collection_id(id: String) -> Result<String, ReadError> {
         .ok_or(ReadError::InvalidCollectionId(id.clone()))?;
 
     Ok(id)
-
 }
 
 fn convert_difficulty(difficulty: &Option<PuzzleDifficulty>) -> Option<PuzzleDifficultyConfig> {
