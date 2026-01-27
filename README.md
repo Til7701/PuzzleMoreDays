@@ -3,7 +3,8 @@
 A Libadwaita application to solve daily puzzles in various formats. It can tell you, if you are on the
 right track or, whether it is impossible to solve the puzzle with your current approach.
 
-![screenshot](data/screenshot-default-dark.png)
+![Screenshort of the start screen](data/screenshot-start-dark.png)
+![Screenshot of the puzzle area while solving the puzzle](data/screenshot-year-dark.png)
 
 ## Build and Run
 
