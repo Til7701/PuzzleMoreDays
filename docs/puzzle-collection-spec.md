@@ -8,7 +8,7 @@ If it does not give an error message, when this specification suggests it should
 <!-- @formatter:off -->
 ```json
 {
-    "spec": 1,
+    "puzzled": "0.2.0",
     "name": "Example Puzzle",
     "author": "Puzzle More Days",
     "description": "Fill the board with trominoes.",
