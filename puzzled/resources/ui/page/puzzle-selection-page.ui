@@ -120,7 +120,7 @@
                                         <child>
                                             <object class="GtkListBox" id="puzzle_list">
                                                 <style>
-                                                    <class name="boxed-list"/>
+                                                    <class name="boxed-list-separate"/>
                                                 </style>
                                             </object>
                                         </child>
