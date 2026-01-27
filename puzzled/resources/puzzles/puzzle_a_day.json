@@ -2,6 +2,7 @@
   "puzzled": "0.2.0",
   "name": "Puzzle a Day",
   "author": "Puzzled",
+  "id": "de.til7701.Puzzled.PuzzleADay",
   "custom_tiles": {
     "O6": [
       [1, 1, 1],
