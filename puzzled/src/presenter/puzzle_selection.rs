@@ -4,10 +4,11 @@ use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension};
 use crate::presenter::navigation::NavigationPresenter;
 use crate::view::board::BoardView;
 use crate::view::info_pill::InfoPill;
+use crate::view::puzzle_mod::PuzzleMod;
 use crate::view::tile::TileView;
 use crate::window::PuzzledWindow;
 use adw::glib::{Variant, VariantTy};
-use adw::prelude::{ActionMapExtManual, ObjectExt};
+use adw::prelude::{ActionMapExtManual, ObjectExt, StaticType};
 use adw::{gio, WrapBox};
 use gtk::prelude::{ActionableExt, BoxExt, FixedExt, WidgetExt};
 use gtk::{Align, Fixed, Label, ListBox};
@@ -142,6 +143,7 @@ impl PuzzleSelectionPresenter {
         puzzle: &PuzzleConfig,
         collection: &PuzzleConfigCollection,
     ) -> gtk::ListBoxRow {
+        PuzzleMod::static_type();
         const RESOURCE_PATH: &str = "/de/til7701/Puzzled/puzzle-selection-item.ui";
         let builder = gtk::Builder::from_resource(RESOURCE_PATH);
         let row: gtk::ListBoxRow = builder
@@ -151,20 +153,19 @@ impl PuzzleSelectionPresenter {
         let name_label: Label = builder.object("name").expect("Missing `name` in resource");
         name_label.set_label(puzzle.name());
 
-        let state_label: Label = builder
-            .object("state")
-            .expect("Missing `state` in resource");
-        state_label.set_label(
-            format!(
-                "{}",
-                self.puzzle_meta.is_solved(
-                    collection,
-                    puzzle.index(),
-                    &get_state().puzzle_type_extension
-                )
-            )
-            .as_str(),
+        let puzzle_mod: PuzzleMod = builder
+            .object("puzzle_mod")
+            .expect("Missing `puzzle_mod` in resource");
+        let solved = self.puzzle_meta.is_solved(
+            collection,
+            puzzle.index(),
+            &get_state().puzzle_type_extension,
         );
+        if solved {
+            puzzle_mod.set_solved();
+        } else {
+            puzzle_mod.set_off();
+        }
 
         let description_label: Label = builder
             .object("description")
