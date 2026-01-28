@@ -36,72 +36,21 @@
                         <property name="child-spacing">4</property>
                         <property name="line-spacing">4</property>
                         <child>
-                            <object class="GtkBox">
-                                <property name="spacing">4</property>
+                            <object class="PuzzledInfoPill" id="board_size_pill">
                                 <property name="tooltip-text">The dimensions of the board</property>
-                                <style>
-                                    <class name="info-pill"/>
-                                </style>
-                                <child>
-                                    <object class="GtkImage">
-                                        <property name="icon-name">checkerboard-big-symbolic</property>
-                                        <style>
-                                            <class name="accent"/>
-                                        </style>
-                                    </object>
-                                </child>
-                                <child>
-                                    <object class="GtkLabel" id="board_size">
-                                        <style>
-                                            <class name="numeric"/>
-                                        </style>
-                                    </object>
-                                </child>
+                                <property name="icon-name">checkerboard-big-symbolic</property>
                             </object>
                         </child>
                         <child>
-                            <object class="GtkBox">
-                                <property name="spacing">4</property>
+                            <object class="PuzzledInfoPill" id="tile_count_pill">
                                 <property name="tooltip-text">The number of tiles in this puzzle</property>
-                                <style>
-                                    <class name="info-pill"/>
-                                </style>
-                                <child>
-                                    <object class="GtkImage">
-                                        <property name="icon-name">puzzle-piece-symbolic</property>
-                                        <style>
-                                            <class name="accent"/>
-                                        </style>
-                                    </object>
-                                </child>
-                                <child>
-                                    <object class="GtkLabel" id="tile_count">
-                                        <style>
-                                            <class name="numeric"/>
-                                        </style>
-                                    </object>
-                                </child>
+                                <property name="icon-name">puzzle-piece-symbolic</property>
                             </object>
                         </child>
                         <child>
-                            <object class="GtkBox" id="difficulty_box">
-                                <property name="spacing">4</property>
+                            <object class="PuzzledInfoPill" id="difficulty_pill">
                                 <property name="tooltip-text">Difficulty of this puzzle</property>
-                                <style>
-                                    <class name="info-pill"/>
-                                </style>
-                                <child>
-                                    <object class="GtkImage">
-                                        <property name="icon-name">brain-symbolic</property>
-                                        <style>
-                                            <class name="accent"/>
-                                        </style>
-                                    </object>
-                                </child>
-                                <child>
-                                    <object class="GtkLabel" id="difficulty">
-                                    </object>
-                                </child>
+                                <property name="icon-name">brain-symbolic</property>
                             </object>
                         </child>
                     </object>
