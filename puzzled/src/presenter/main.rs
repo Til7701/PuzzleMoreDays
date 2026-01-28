@@ -4,14 +4,15 @@ use crate::global::state::get_state_mut;
 use crate::presenter::puzzle::PuzzlePresenter;
 use crate::presenter::puzzle_selection::PuzzleSelectionPresenter;
 use crate::window::PuzzledWindow;
-use adw::prelude::ActionMapExtManual;
-use adw::{gio, NavigationSplitView};
+use adw::prelude::{ActionMapExtManual, AdwDialogExt, AlertDialogExt};
+use adw::{gio, NavigationSplitView, Window};
 use log::info;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct MainPresenter {
+    window: PuzzledWindow,
     outer_view: NavigationSplitView,
     inner_view: NavigationSplitView,
     presenters: Rc<RefCell<Option<Presenters>>>,
@@ -20,6 +21,7 @@ pub struct MainPresenter {
 impl MainPresenter {
     pub fn new(window: &PuzzledWindow) -> Self {
         MainPresenter {
+            window: window.clone(),
             outer_view: window.outer_view(),
             inner_view: window.inner_view(),
             presenters: Rc::new(RefCell::new(None)),
@@ -30,14 +32,7 @@ impl MainPresenter {
         let mark_all_puzzles_unsolved = gio::ActionEntry::builder("mark_all_puzzles_unsolved")
             .activate({
                 let self_clone = self.clone();
-                move |_, _, _| {
-                    info!("Marking all puzzles as unsolved");
-                    let puzzle_meta = PuzzleMeta::new();
-                    puzzle_meta.reset_all();
-                    if let Some(presenters) = self_clone.presenters.borrow().as_ref() {
-                        presenters.puzzle_selection.show_collection();
-                    }
-                }
+                move |_, _, _| self_clone.handle_mark_all_puzzles_unsolved()
             })
             .build();
         app.add_action_entries([mark_all_puzzles_unsolved]);
@@ -80,6 +75,28 @@ impl MainPresenter {
             presenters.puzzle_presenter.show_puzzle();
             self.outer_view.set_show_content(true);
         }
+    }
+
+    fn handle_mark_all_puzzles_unsolved(&self) {
+        const RESOURCE_PATH: &str = "/de/til7701/Puzzled/ui/dialog/mark-unsolved-dialog.ui";
+        let builder = gtk::Builder::from_resource(RESOURCE_PATH);
+        let dialog: adw::AlertDialog = builder
+            .object("dialog")
+            .expect("Missing `dialog` in resource");
+
+        dialog.connect_response(Some("mark"), {
+            let self_clone = self.clone();
+            move |_, _| {
+                info!("Marking all puzzles as unsolved");
+                let puzzle_meta = PuzzleMeta::new();
+                puzzle_meta.reset_all();
+                if let Some(presenters) = self_clone.presenters.borrow().as_ref() {
+                    presenters.puzzle_selection.show_collection();
+                }
+            }
+        });
+
+        dialog.present(Some(&self.window));
     }
 }
 
