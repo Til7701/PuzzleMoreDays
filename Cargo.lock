@@ -760,7 +760,7 @@ dependencies = [
 
 [[package]]
 name = "puzzle_config"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "log",
  "ndarray",
@@ -773,7 +773,7 @@ dependencies = [
 
 [[package]]
 name = "puzzle_solver"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "log",
  "ndarray",
@@ -783,7 +783,7 @@ dependencies = [
 
 [[package]]
 name = "puzzled"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "gettext-rs",
  "gtk4",

@@ -1,0 +1,61 @@
+{
+  "puzzled": "0.2.1",
+  "name": "Circles",
+  "author": "Puzzled",
+  "id": "de.til7701.Puzzled.Circles",
+  "progression": {
+    "type": "Sequential"
+  },
+  "puzzles": [
+    {
+      "name": "Pixel",
+      "difficulty": "Easy",
+      "tiles": [
+        [[1]]
+      ],
+      "board": "1x1"
+    },
+    {
+      "name": "Square",
+      "difficulty": "Easy",
+      "tiles": [
+        [[1]],
+        "L3"
+      ],
+      "board": "2x2"
+    },
+    {
+      "name": "Cross",
+      "difficulty": "Easy",
+      "tiles": [
+        [[1]],
+        "L3",
+        [[1]]
+      ],
+      "board": {
+        "layout": [
+          [1, 0, 1],
+          [0, 0, 0],
+          [1, 0, 1]
+        ]
+      }
+    },
+    {
+      "name": "Are we round yet?",
+      "difficulty": "Easy",
+      "tiles": [
+        "L3",
+        "Z4",
+        "P5"
+      ],
+      "board": {
+        "layout": [
+          [1, 0, 0, 1],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [1, 0, 0, 1]
+        ]
+      }
+    }
+  ]
+}

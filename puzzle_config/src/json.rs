@@ -34,6 +34,7 @@ fn default_true() -> bool {
 }
 
 #[derive(Deserialize, Default)]
+#[serde(tag = "type")]
 enum Progression {
     #[default]
     Any,

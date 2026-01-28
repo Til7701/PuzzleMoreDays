@@ -47,18 +47,19 @@ If it does not give an error message, when this specification suggests it should
 This file can be loaded by Puzzle More Days to add a new puzzle collection for the user to solve.
 The fields have the following meaning:
 
-| Field                | Type                 | Required | Description                                                                                                                                                                                                                                                                            | Default   |
-|----------------------|----------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
-| puzzled              | `String`             | true     | The version of Puzzled this collection is made for. If you try to load a collection into Puzzled which is made for a newer versin of Puzzled, the load operation will fail.                                                                                                            | -         |
-| name                 | `String`             | true     | The name of the puzzle collection. MUST not be blank. The name SHOULD be short (5 to 20 characters) and not contain the word `Collection`.                                                                                                                                             | -         |
-| author               | `String`             | true     | The author of the puzzle collection. MUST not be blank.                                                                                                                                                                                                                                | -         |
-| id                   | `String`             | true     | An id to identify the collection. It MUST be in the reverse domain name format like: `tld.vendor.Author.Collection`. So it might look like `de.til7701.Puzzled.PuzzleADay`. Only the characters matching `[a-z][A-Z][0-9]-` are allowed in between the dots. The id is case sensitive. | -         |
-| allow_board_rotation | `Boolean`            | false    | Flag to define whether the boards in this collection may be rotated in a way deemed most suitable by the application. You may want to disable the rotation for boards that represent a certain shape and do have a "correct" orientiation.                                             | true      |
-| version              | `String`             | false    | The version of the collection set by the author. This may be any string. This is not checked, it is just displayed to the user.                                                                                                                                                        | -         |
-| description          | `String`             | false    | A short description of the puzzle collection. MUST not be blank if specified.                                                                                                                                                                                                          | None      |
-| custom_tiles         | `Map<String, Tile>`  | false    | A map of custom tile definitions to reuse in this file. See [Custom Tiles](#custom-tiles) for details.                                                                                                                                                                                 | Empty Map |
-| custom_boards        | `Map<String, Board>` | false    | A map of custom board definitions to reuse in this file. See [Custom Boards](#custom-boards) for details.                                                                                                                                                                              | Empty Map |
-| puzzles              | `List<Puzzle>`       | true     | The list of puzzles in this collection. See [Puzzles](#puzzles) for details. The order of puzzles in this list SHOULD not change since it MAY be used by Puzzled to bind data to it. When adding a new puzzle to a collection, add it at the end of the list.                          | -         |
+| Field                | Type                 | Required | Description                                                                                                                                                                                                                                                                            | Default   | Version |
+|----------------------|----------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|---------|
+| puzzled              | `String`             | true     | The version of Puzzled this collection is made for. If you try to load a collection into Puzzled which is made for a newer versin of Puzzled, the load operation will fail.                                                                                                            | -         | 0.2.0   |
+| name                 | `String`             | true     | The name of the puzzle collection. MUST not be blank. The name SHOULD be short (5 to 20 characters) and not contain the word `Collection`.                                                                                                                                             | -         | 0.2.0   |
+| author               | `String`             | true     | The author of the puzzle collection. MUST not be blank.                                                                                                                                                                                                                                | -         | 0.2.0   |
+| id                   | `String`             | true     | An id to identify the collection. It MUST be in the reverse domain name format like: `tld.vendor.Author.Collection`. So it might look like `de.til7701.Puzzled.PuzzleADay`. Only the characters matching `[a-z][A-Z][0-9]-` are allowed in between the dots. The id is case sensitive. | -         | 0.2.0   |
+| allow_board_rotation | `Boolean`            | false    | Flag to define whether the boards in this collection may be rotated in a way deemed most suitable by the application. You may want to disable the rotation for boards that represent a certain shape and do have a "correct" orientiation.                                             | true      | 0.2.0   |
+| version              | `String`             | false    | The version of the collection set by the author. This may be any string. This is not checked, it is just displayed to the user.                                                                                                                                                        | -         | 0.2.0   |
+| description          | `String`             | false    | A short description of the puzzle collection. MUST not be blank if specified.                                                                                                                                                                                                          | None      | 0.2.0   |
+| progression          | `Progression`        | false    | The progression settings for this collection. See [Progression](#progression) for details.                                                                                                                                                                                             | Any       | 0.2.1   |
+| custom_tiles         | `Map<String, Tile>`  | false    | A map of custom tile definitions to reuse in this file. See [Custom Tiles](#custom-tiles) for details.                                                                                                                                                                                 | Empty Map | 0.2.0   |
+| custom_boards        | `Map<String, Board>` | false    | A map of custom board definitions to reuse in this file. See [Custom Boards](#custom-boards) for details.                                                                                                                                                                              | Empty Map | 0.2.0   |
+| puzzles              | `List<Puzzle>`       | true     | The list of puzzles in this collection. See [Puzzles](#puzzles) for details. The order of puzzles in this list SHOULD not change since it MAY be used by Puzzled to bind data to it. When adding a new puzzle to a collection, add it at the end of the list.                          | -         | 0.2.0   |
 
 ## Custom Tiles
 
@@ -375,3 +376,23 @@ E.g., "6" for the year 26.
     "type": "CurrentYear2SecondDigit"
 }
 ```
+
+## Progression
+
+The progression field defines how puzzles in this collection are unlocked for the user.
+This field is available since version `0.2.1` of Puzzled.
+
+Example:
+
+```json
+{
+    "type": "Any"
+}
+```
+
+The following progression types are available:
+
+| Type       | Description                                                                                                                      |
+|------------|----------------------------------------------------------------------------------------------------------------------------------|
+| Any        | All puzzles are available from the start.                                                                                        |
+| Sequential | Puzzles are unlocked one by one in the order they are defined in the puzzles list. The first puzzle is available from the start. |

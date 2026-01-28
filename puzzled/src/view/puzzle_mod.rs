@@ -66,4 +66,12 @@ impl PuzzleMod {
         imp.label.set_text("Solved");
         imp.label.set_visible(true);
     }
+
+    pub fn set_locked(&self) {
+        let imp = self.imp();
+        imp.icon.set_icon_name(Some("padlock2-symbolic"));
+        imp.icon.set_visible(true);
+        imp.label.set_text("Locked");
+        imp.label.set_visible(true);
+    }
 }

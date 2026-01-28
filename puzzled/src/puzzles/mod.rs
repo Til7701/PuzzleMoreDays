@@ -6,7 +6,7 @@ use std::backtrace::Backtrace;
 use std::sync::{Mutex, MutexGuard, TryLockError};
 use std::time::Duration;
 
-const CORE_COLLECTIONS: [&str; 3] = ["puzzle_a_day", "trominoes", "puzzled"];
+const CORE_COLLECTIONS: [&str; 4] = ["puzzle_a_day", "trominoes", "circles", "puzzled"];
 
 static PUZZLE_COLLECTION_STORE: Lazy<Mutex<PuzzleCollectionStore>> =
     Lazy::new(|| Mutex::new(PuzzleCollectionStore::default()));

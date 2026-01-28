@@ -19,6 +19,7 @@
         <file>puzzles/puzzle_a_day.json</file>
         <file>puzzles/puzzled.json</file>
         <file>puzzles/trominoes.json</file>
+        <file>puzzles/circles.json</file>
     </gresource>
     <!-- @formatter:off -->
     <gresource prefix="/de/til7701/Puzzled/icons/scalable/actions/">
@@ -33,6 +34,7 @@
         <file preprocess="xml-stripblanks" alias="commit-horizontal-symbolic.svg">icons/commit-horizontal-symbolic.svg</file>
         <file preprocess="xml-stripblanks" alias="checkerboard-big-symbolic.svg">icons/checkerboard-big-symbolic.svg</file>
         <file preprocess="xml-stripblanks" alias="brain-symbolic.svg">icons/brain-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="padlock2-symbolic.svg">icons/padlock2-symbolic.svg</file>
     </gresource>
     <!-- @formatter:on -->
 </gresources>

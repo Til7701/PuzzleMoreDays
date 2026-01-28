@@ -10,11 +10,12 @@ use crate::window::PuzzledWindow;
 use adw::glib::{Variant, VariantTy};
 use adw::prelude::{ActionMapExtManual, ObjectExt, StaticType};
 use adw::{gio, WrapBox};
-use gtk::prelude::{ActionableExt, BoxExt, FixedExt, WidgetExt};
+use gtk::prelude::{ActionableExt, BoxExt, FixedExt, ListBoxRowExt, WidgetExt};
 use gtk::{Align, Fixed, Label, ListBox};
 use log::error;
 use puzzle_config::{
-    BoardConfig, PuzzleConfig, PuzzleConfigCollection, PuzzleDifficultyConfig, TileConfig,
+    BoardConfig, ProgressionConfig, PuzzleConfig, PuzzleConfigCollection, PuzzleDifficultyConfig,
+    TileConfig,
 };
 
 const CELL_SIZE: f64 = 20.0;
@@ -97,9 +98,20 @@ impl PuzzleSelectionPresenter {
                 }
             }
 
-            for (i, puzzle) in collection.puzzles().iter().enumerate() {
+            for puzzle in collection.puzzles().iter() {
                 let row = self.create_puzzle_row(puzzle, collection);
                 self.puzzle_list.append(&row);
+            }
+
+            match collection.progression() {
+                ProgressionConfig::Any => {
+                    self.puzzle_list.add_css_class("boxed-list-separate");
+                    self.puzzle_list.remove_css_class("boxed-list");
+                }
+                ProgressionConfig::Sequential => {
+                    self.puzzle_list.add_css_class("boxed-list");
+                    self.puzzle_list.remove_css_class("boxed-list-separate");
+                }
             }
         }
     }
@@ -149,6 +161,7 @@ impl PuzzleSelectionPresenter {
         let row: gtk::ListBoxRow = builder
             .object("row")
             .expect("Missing `puzzle-selection-item.ui` in resource");
+        row.set_action_target_value(Some(&Variant::from(puzzle.index() as u32)));
 
         let name_label: Label = builder.object("name").expect("Missing `name` in resource");
         name_label.set_label(puzzle.name());
@@ -161,10 +174,36 @@ impl PuzzleSelectionPresenter {
             puzzle.index(),
             &get_state().puzzle_type_extension,
         );
-        if solved {
-            puzzle_mod.set_solved();
-        } else {
-            puzzle_mod.set_off();
+        match &collection.progression() {
+            ProgressionConfig::Any => {
+                if solved {
+                    puzzle_mod.set_solved();
+                } else {
+                    puzzle_mod.set_off();
+                }
+            }
+            ProgressionConfig::Sequential => {
+                let previous_solved = if puzzle.index() == 0 {
+                    true
+                } else {
+                    self.puzzle_meta
+                        .is_solved(collection, puzzle.index() - 1, &None)
+                };
+
+                if solved {
+                    puzzle_mod.set_solved();
+                    row.set_activatable(true);
+                    row.remove_css_class("dimmed");
+                } else if previous_solved {
+                    puzzle_mod.set_off();
+                    row.set_activatable(true);
+                    row.remove_css_class("dimmed");
+                } else {
+                    puzzle_mod.set_locked();
+                    row.set_activatable(false);
+                    row.add_css_class("dimmed");
+                }
+            }
         }
 
         let description_label: Label = builder
@@ -218,8 +257,6 @@ impl PuzzleSelectionPresenter {
             .object("board_preview_box")
             .expect("Missing `board_preview_box` in resource");
         create_board_preview(puzzle.board_config(), preview_box);
-
-        row.set_action_target_value(Some(&Variant::from(puzzle.index() as u32)));
 
         row
     }
