@@ -1,3 +1,4 @@
+use crate::view::info_pill::InfoPill;
 use adw::gio;
 use adw::subclass::prelude::*;
 use gtk::glib;
@@ -5,6 +6,7 @@ use gtk::prelude::*;
 
 mod imp {
     use super::*;
+    use crate::view::info_pill::InfoPill;
 
     #[derive(Debug, Default, gtk::CompositeTemplate)]
     #[template(resource = "/de/til7701/Puzzled/ui/page/puzzle-selection-page.ui")]
@@ -16,13 +18,11 @@ mod imp {
         #[template_child]
         pub collection_info_box: TemplateChild<adw::WrapBox>,
         #[template_child]
-        pub puzzle_count_label: TemplateChild<gtk::Label>,
+        pub puzzle_count_pill: TemplateChild<InfoPill>,
         #[template_child]
-        pub author_label: TemplateChild<gtk::Label>,
+        pub author_pill: TemplateChild<InfoPill>,
         #[template_child]
-        pub version_box: TemplateChild<gtk::Box>,
-        #[template_child]
-        pub version_label: TemplateChild<gtk::Label>,
+        pub version_pill: TemplateChild<InfoPill>,
         #[template_child]
         pub puzzle_list: TemplateChild<gtk::ListBox>,
     }
@@ -73,20 +73,16 @@ impl PuzzleSelectionPage {
         self.imp().collection_info_box.clone()
     }
 
-    pub fn puzzle_count_label(&self) -> gtk::Label {
-        self.imp().puzzle_count_label.clone()
+    pub fn puzzle_count_pill(&self) -> InfoPill {
+        self.imp().puzzle_count_pill.clone()
     }
 
-    pub fn author_label(&self) -> gtk::Label {
-        self.imp().author_label.clone()
+    pub fn author_pill(&self) -> InfoPill {
+        self.imp().author_pill.clone()
     }
 
-    pub fn version_box(&self) -> gtk::Box {
-        self.imp().version_box.clone()
-    }
-
-    pub fn version_label(&self) -> gtk::Label {
-        self.imp().version_label.clone()
+    pub fn version_pill(&self) -> InfoPill {
+        self.imp().version_pill.clone()
     }
 
     pub fn puzzle_list(&self) -> gtk::ListBox {

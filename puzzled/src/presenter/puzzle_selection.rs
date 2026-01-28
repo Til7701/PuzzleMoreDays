@@ -2,6 +2,7 @@ use crate::application::PuzzledApplication;
 use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension};
 use crate::presenter::navigation::NavigationPresenter;
 use crate::view::board::BoardView;
+use crate::view::info_pill::InfoPill;
 use crate::view::tile::TileView;
 use crate::window::PuzzledWindow;
 use adw::glib::{Variant, VariantTy};
@@ -20,10 +21,9 @@ pub struct PuzzleSelectionPresenter {
     puzzle_name_label: Label,
     puzzle_description_label: Label,
     collection_info_box: WrapBox,
-    puzzle_count_label: Label,
-    author_label: Label,
-    version_box: gtk::Box,
-    version_label: Label,
+    puzzle_count_pill: InfoPill,
+    author_pill: InfoPill,
+    version_pill: InfoPill,
     puzzle_list: ListBox,
 }
 
@@ -35,10 +35,9 @@ impl PuzzleSelectionPresenter {
             puzzle_name_label: page.puzzle_name_label(),
             puzzle_description_label: page.puzzle_description_label(),
             collection_info_box: page.collection_info_box(),
-            puzzle_count_label: page.puzzle_count_label(),
-            author_label: page.author_label(),
-            version_box: page.version_box(),
-            version_label: page.version_label(),
+            puzzle_count_pill: page.puzzle_count_pill(),
+            author_pill: page.author_pill(),
+            version_pill: page.version_pill(),
             puzzle_list: page.puzzle_list(),
         }
     }
@@ -77,18 +76,18 @@ impl PuzzleSelectionPresenter {
             }
 
             let puzzle_count = collection.puzzles().len();
-            self.puzzle_count_label
-                .set_label(&format!("{}", puzzle_count));
-            self.author_label
-                .set_label(&format!("{}", collection.author()));
+            self.puzzle_count_pill
+                .set_label(format!("{}", puzzle_count));
+            self.author_pill
+                .set_label(format!("{}", collection.author()));
             if let Some(version) = collection.version() {
-                self.version_label.set_label(&format!("{}", version));
-                if self.version_box.parent().is_none() {
-                    self.collection_info_box.append(&self.version_box);
+                self.version_pill.set_label(format!("{}", version));
+                if self.version_pill.parent().is_none() {
+                    self.collection_info_box.append(&self.version_pill);
                 }
             } else {
-                if self.version_box.parent().is_some() {
-                    self.collection_info_box.remove(&self.version_box);
+                if self.version_pill.parent().is_some() {
+                    self.collection_info_box.remove(&self.version_pill);
                 }
             }
 
@@ -156,18 +155,21 @@ fn create_puzzle_row(index: u32, puzzle: &PuzzleConfig) -> gtk::ListBoxRow {
         outer_box.remove(&description_label);
     }
 
-    let board_size_label: gtk::Label = builder
-        .object("board_size")
-        .expect("Missing `board_size` in resource");
+    let board_size_pill: InfoPill = builder
+        .object("board_size_pill")
+        .expect("Missing `board_size_pill` in resource");
     let (width, height) = puzzle.board_config().layout().dim();
-    board_size_label.set_label(&format!("{} x {}", width, height));
+    board_size_pill.set_label(format!("{} x {}", width, height));
 
-    let tile_count_label: gtk::Label = builder
-        .object("tile_count")
-        .expect("Missing `tile_count` in resource");
+    let tile_count_pill: InfoPill = builder
+        .object("tile_count_pill")
+        .expect("Missing `tile_count_pill` in resource");
     let tile_count = puzzle.tiles().len();
-    tile_count_label.set_label(&format!("{}", tile_count));
+    tile_count_pill.set_label(format!("{}", tile_count));
 
+    let difficulty_pill: InfoPill = builder
+        .object("difficulty_pill")
+        .expect("Missing `difficulty_pill` in resource");
     if let Some(difficulty) = puzzle.difficulty() {
         let text = match difficulty {
             PuzzleDifficultyConfig::Easy => "Easy",
@@ -175,18 +177,12 @@ fn create_puzzle_row(index: u32, puzzle: &PuzzleConfig) -> gtk::ListBoxRow {
             PuzzleDifficultyConfig::Hard => "Hard",
             PuzzleDifficultyConfig::Expert => "Expert",
         };
-        let difficulty_label: gtk::Label = builder
-            .object("difficulty")
-            .expect("Missing `difficulty` in resource");
-        difficulty_label.set_label(text);
+        difficulty_pill.set_label(text);
     } else {
-        let info_box: adw::WrapBox = builder
+        let info_box: WrapBox = builder
             .object("info_box")
             .expect("Missing `info_box` in resource");
-        let difficulty_box: gtk::Box = builder
-            .object("difficulty_box")
-            .expect("Missing `difficulty_box` in resource");
-        info_box.remove(&difficulty_box);
+        info_box.remove(&difficulty_pill);
     }
 
     let fixed: Fixed = builder

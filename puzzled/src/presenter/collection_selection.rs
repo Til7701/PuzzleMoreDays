@@ -3,6 +3,7 @@ use crate::config;
 use crate::global::state::get_state_mut;
 use crate::presenter::navigation::NavigationPresenter;
 use crate::puzzles::{add_community_collection_from_string, get_puzzle_collection_store};
+use crate::view::info_pill::InfoPill;
 use crate::window::PuzzledWindow;
 use adw::gio::{Cancellable, File};
 use adw::glib::{Variant, VariantTy};
@@ -247,27 +248,24 @@ fn create_collection_row(id: CollectionId, collection: &PuzzleConfigCollection) 
     let name_label: gtk::Label = builder.object("name").expect("Missing `name` in resource");
     name_label.set_label(collection.name());
 
-    let puzzle_count_label: gtk::Label = builder
-        .object("puzzle_count")
-        .expect("Missing `puzzle_count` in resource");
+    let puzzle_count_pill: InfoPill = builder
+        .object("puzzle_count_pill")
+        .expect("Missing `puzzle_count_pill` in resource");
     let puzzle_count_text = format!("{}", collection.puzzles().len());
-    puzzle_count_label.set_label(&puzzle_count_text);
+    puzzle_count_pill.set_label(puzzle_count_text);
 
-    let author_label: gtk::Label = builder
-        .object("author")
-        .expect("Missing `author` in resource");
-    author_label.set_label(collection.author());
+    let author_pill: InfoPill = builder
+        .object("author_pill")
+        .expect("Missing `author_pill` in resource");
+    author_pill.set_label(collection.author());
 
+    let version_pill: InfoPill = builder
+        .object("version_pill")
+        .expect("Missing `version_pill` in resource");
     if let Some(version) = collection.version() {
-        let version_label: gtk::Label = builder
-            .object("version")
-            .expect("Missing `version` in resource");
-        version_label.set_label(version);
+        version_pill.set_label(version.as_str());
     } else {
-        let version_box: gtk::Box = builder
-            .object("version_box")
-            .expect("Missing `version_box` in resource");
-        info_box.remove(&version_box);
+        info_box.remove(&version_pill);
     }
 
     row.set_action_target_value(Some(&id.into()));

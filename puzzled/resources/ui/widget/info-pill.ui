@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <requires lib="gtk" version="4.0"/>
+    <requires lib="Adw" version="1.0"/>
+    <template class="PuzzledInfoPill" parent="GtkBox">
+        <property name="label"
+                  bind-source="label"
+                  bind-property="label"
+                  bind-flags="bidirectional"/>
+        <property name="icon-name"
+                  bind-source="icon"
+                  bind-property="icon-name"
+                  bind-flags="bidirectional"/>
+        <property name="spacing">4</property>
+        <style>
+            <class name="info-pill"/>
+        </style>
+        <child>
+            <object class="GtkImage" id="icon">
+                <style>
+                    <class name="accent"/>
+                </style>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="label">
+
+                <style>
+                    <class name="numeric"/>
+                </style>
+            </object>
+        </child>
+    </template>
+</interface>

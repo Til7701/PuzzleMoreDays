@@ -50,69 +50,21 @@
                                                 <property name="child-spacing">4</property>
                                                 <property name="line-spacing">4</property>
                                                 <child>
-                                                    <object class="GtkBox">
-                                                        <property name="spacing">4</property>
+                                                    <object class="PuzzledInfoPill" id="puzzle_count_pill">
                                                         <property name="tooltip-text">Number of puzzles in this collection</property>
-                                                        <style>
-                                                            <class name="info-pill"/>
-                                                        </style>
-                                                        <child>
-                                                            <object class="GtkImage">
-                                                                <property name="icon-name">puzzle-piece-symbolic</property>
-                                                                <style>
-                                                                    <class name="accent"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkLabel" id="puzzle_count_label">
-                                                                <style>
-                                                                    <class name="numeric"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
+                                                        <property name="icon-name">puzzle-piece-symbolic</property>
                                                     </object>
                                                 </child>
                                                 <child>
-                                                    <object class="GtkBox">
-                                                        <property name="spacing">4</property>
+                                                    <object class="PuzzledInfoPill" id="author_pill">
                                                         <property name="tooltip-text">Author of this puzzle collection</property>
-                                                        <style>
-                                                            <class name="info-pill"/>
-                                                        </style>
-                                                        <child>
-                                                            <object class="GtkImage">
-                                                                <property name="icon-name">avatar-default</property>
-                                                                <style>
-                                                                    <class name="accent"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkLabel" id="author_label">
-                                                            </object>
-                                                        </child>
+                                                        <property name="icon-name">avatar-default</property>
                                                     </object>
                                                 </child>
                                                 <child>
-                                                    <object class="GtkBox" id="version_box">
-                                                        <property name="spacing">4</property>
+                                                    <object class="PuzzledInfoPill" id="version_pill">
                                                         <property name="tooltip-text">Version of the collection</property>
-                                                        <style>
-                                                            <class name="info-pill"/>
-                                                        </style>
-                                                        <child>
-                                                            <object class="GtkImage">
-                                                                <property name="icon-name">commit-horizontal-symbolic</property>
-                                                                <style>
-                                                                    <class name="accent"/>
-                                                                </style>
-                                                            </object>
-                                                        </child>
-                                                        <child>
-                                                            <object class="GtkLabel" id="version_label">
-                                                            </object>
-                                                        </child>
+                                                        <property name="icon-name">commit-horizontal-symbolic</property>
                                                     </object>
                                                 </child>
                                             </object>
