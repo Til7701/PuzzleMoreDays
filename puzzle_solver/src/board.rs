@@ -66,8 +66,10 @@ impl Board {
     /// Prints the board to the debug log.
     #[allow(dead_code)]
     pub(crate) fn debug_print(&self) {
-        debug!("Board:");
-        array_util::debug_print(&self.0);
+        if log::log_enabled!(log::Level::Debug) {
+            debug!("Board:");
+            array_util::debug_print(&self.0);
+        }
     }
 
     /// Trims the board by removing any rows or columns on the edges that are entirely

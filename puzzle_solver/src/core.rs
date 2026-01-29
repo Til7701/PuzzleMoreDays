@@ -89,7 +89,7 @@ pub async fn solve_filling(
                 None
             }
             res = await_completion(&mut set) => {
-                debug!("Solver Finished, aborting remaining solver tasks.");
+                debug!("Solver Finished, aborting remaining solver tasks. Result: {:?}", res);
                 res
             }
         }
@@ -104,11 +104,14 @@ async fn await_completion(set: &mut JoinSet<bool>) -> Option<Vec<usize>> {
         match res {
             Ok(solved) => {
                 if solved {
+                    debug!("Solver Finished successfully.");
                     result = Some(Vec::new());
                     break;
                 }
             }
-            Err(_) => {}
+            Err(e) => {
+                debug!("Solver task failed with error: {:?}", e);
+            }
         }
     }
     result
@@ -202,7 +205,9 @@ impl AllFillingSolver {
     ///
     /// returns: bool: true if a solution is found, false otherwise.
     async fn solve(&mut self) -> bool {
-        self.solve_recursive(self.start_tile_index).await
+        let result = self.solve_recursive(self.start_tile_index).await;
+        dbg!(result);
+        result
     }
 
     /// The main recursive solver function.

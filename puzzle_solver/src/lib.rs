@@ -68,6 +68,13 @@ pub async fn solve_all_filling(
     let mut board = board;
     board.trim();
 
+    board.debug_print();
+    debug!("Tiles:");
+    for (i, tile) in tiles.iter().enumerate() {
+        debug!("Tile {}:", i);
+        array_util::debug_print(&tile.base());
+    }
+
     let board_bitmask = Bitmask::from(board.get_array());
     let positioned_tiles: Vec<PositionedTile> = tiles
         .iter()
@@ -86,6 +93,8 @@ pub async fn solve_all_filling(
         cancel_token,
     )
     .await;
+
+    debug!("Solver: Solvable: {:?}", result);
 
     match result {
         Some(_) => Ok(Solution { placements: vec![] }),

@@ -43,7 +43,7 @@ pub fn create_banned_bitmasks_for_filling(
         banned_bitmasks.extend(banned_bitmasks_2x2(board));
     }
 
-    banned_bitmasks
+    HashSet::new()
 }
 
 fn banned_bitmasks_1x1(board: &Board) -> HashSet<BannedBitmask> {
