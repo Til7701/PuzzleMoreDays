@@ -109,32 +109,32 @@ Example:
 
 The following standard tiles are available:
 
-| Name            | Shape                                                               |
-|-----------------|---------------------------------------------------------------------|
-| **Trominoes**   |                                                                     |
-| `I3`            | ![I3 Tile](https://til7701.de/assets/images/puzzled/tiles/3/I3.svg) |
-| `L3`            | ![L3 Tile](https://til7701.de/assets/images/puzzled/tiles/3/L3.svg) |
-| **Tetrominoes** |                                                                     |
-| `I4`            | ![I4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/I4.svg) |
-| `J4`            | ![L4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/J4.svg) |
-| `L4`            | ![L4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/L4.svg) |
-| `O4`            | ![O4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/O4.svg) |
-| `S4`            | ![S4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/S4.svg) |
-| `T4`            | ![T4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/T4.svg) |
-| `Z4`            | ![Z4 Tile](https://til7701.de/assets/images/puzzled/tiles/4/Z4.svg) |
-| **Pentominoes** |                                                                     |
-| `F5`            | ![F5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/F5.svg) |
-| `I5`            | ![I5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/I5.svg) |
-| `L5`            | ![L5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/L5.svg) |
-| `N5`            | ![N5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/N5.svg) |
-| `P5`            | ![P5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/P5.svg) |
-| `T5`            | ![T5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/T5.svg) |
-| `U5`            | ![U5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/U5.svg) |
-| `V5`            | ![V5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/V5.svg) |
-| `W5`            | ![W5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/W5.svg) |
-| `X5`            | ![X5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/X5.svg) |
-| `Y5`            | ![Y5 Tile](https://til7701.de/assets/images/puzzled/tiles/5/Y5.svg) |
-| `Z5`            | ![I3 Tile](https://til7701.de/assets/images/puzzled/tiles/5/Z5.svg) |
+| Name            | Shape                      |
+|-----------------|----------------------------|
+| **Trominoes**   |                            |
+| `I3`            | ![I3 Tile](tiles/3/I3.svg) |
+| `L3`            | ![L3 Tile](tiles/3/L3.svg) |
+| **Tetrominoes** |                            |
+| `I4`            | ![I4 Tile](tiles/4/I4.svg) |
+| `J4`            | ![L4 Tile](tiles/4/J4.svg) |
+| `L4`            | ![L4 Tile](tiles/4/L4.svg) |
+| `O4`            | ![O4 Tile](tiles/4/O4.svg) |
+| `S4`            | ![S4 Tile](tiles/4/S4.svg) |
+| `T4`            | ![T4 Tile](tiles/4/T4.svg) |
+| `Z4`            | ![Z4 Tile](tiles/4/Z4.svg) |
+| **Pentominoes** |                            |
+| `F5`            | ![F5 Tile](tiles/5/F5.svg) |
+| `I5`            | ![I5 Tile](tiles/5/I5.svg) |
+| `L5`            | ![L5 Tile](tiles/5/L5.svg) |
+| `N5`            | ![N5 Tile](tiles/5/N5.svg) |
+| `P5`            | ![P5 Tile](tiles/5/P5.svg) |
+| `T5`            | ![T5 Tile](tiles/5/T5.svg) |
+| `U5`            | ![U5 Tile](tiles/5/U5.svg) |
+| `V5`            | ![V5 Tile](tiles/5/V5.svg) |
+| `W5`            | ![W5 Tile](tiles/5/W5.svg) |
+| `X5`            | ![X5 Tile](tiles/5/X5.svg) |
+| `Y5`            | ![Y5 Tile](tiles/5/Y5.svg) |
+| `Z5`            | ![I3 Tile](tiles/5/Z5.svg) |
 
 ### Array
 
@@ -155,7 +155,7 @@ For example, the following array defines a Z5 tile:
 
 Which, as a reminder, looks like this:
 
-<img alt="Z5 Tile" src="https://til7701.de/assets/images/puzzled/tiles/5/Z5.svg" height="100"/>
+<img alt="Z5 Tile" src="tiles/5/Z5.svg" height="100"/>
 
 ## Board
 
