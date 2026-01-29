@@ -1,0 +1,18 @@
+{
+  "puzzled": "0.2.0",
+  "name": "Sandbox",
+  "description": "I recommend turning the solver off before loading any puzzle.",
+  "author": "Puzzled",
+  "id": "de.til7701.Puzzled.Sandbox",
+  "puzzles": [
+    {
+      "name": "Large Sandbox",
+      "tiles": [
+        "I3", "L3",
+        "I4", "J4", "L4", "O4", "S4", "T4", "Z4",
+        "F5", "I5", "L5", "N5", "P5", "T5", "U5", "V5", "W5", "X5", "Y5", "Z5"
+      ],
+      "board": "20x20"
+    }
+  ]
+}
