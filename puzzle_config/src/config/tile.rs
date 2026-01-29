@@ -280,10 +280,9 @@ pub fn from_predefined_tile(name: &str) -> Option<TileConfig> {
         )),
         "t6" => Some(TileConfig::new(
             arr2(&[
-                [true, false, false],
-                [true, false, false],
-                [true, true, true],
-                [true, false, false],
+                [true, true, true, true],
+                [false, true, false, false],
+                [false, true, false, false],
             ])
             .reversed_axes(),
         )),

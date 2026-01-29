@@ -135,6 +135,42 @@ The following standard tiles are available:
 | `X5`            | ![X5 Tile](tiles/5/X5.svg) |
 | `Y5`            | ![Y5 Tile](tiles/5/Y5.svg) |
 | `Z5`            | ![I3 Tile](tiles/5/Z5.svg) |
+| **Hexominoes**  |                            |
+| `A6`            | ![A6 Tile](tiles/6/A6.svg) |
+| `B6`            | ![B6 Tile](tiles/6/B6.svg) |
+| `C6`            | ![C6 Tile](tiles/6/C6.svg) |
+| `D6`            | ![D6 Tile](tiles/6/D6.svg) |
+| `F6`            | ![F6 Tile](tiles/6/F6.svg) |
+| `f6`            | ![f6 Tile](tiles/6/f6.svg) |
+| `G6`            | ![G6 Tile](tiles/6/G6.svg) |
+| `H6`            | ![H6 Tile](tiles/6/H6.svg) |
+| `I6`            | ![I6 Tile](tiles/6/I6.svg) |
+| `J6`            | ![J6 Tile](tiles/6/J6.svg) |
+| `K6`            | ![K6 Tile](tiles/6/K6.svg) |
+| `L6`            | ![L6 Tile](tiles/6/L6.svg) |
+| `M6`            | ![M6 Tile](tiles/6/M6.svg) |
+| `m6`            | ![m6 Tile](tiles/6/m6.svg) |
+| `N6`            | ![N6 Tile](tiles/6/N6.svg) |
+| `n6`            | ![n6 Tile](tiles/6/n6.svg) |
+| `O6`            | ![O6 Tile](tiles/6/O6.svg) |
+| `P6`            | ![P6 Tile](tiles/6/P6.svg) |
+| `p6`            | ![p6 Tile](tiles/6/p6.svg) |
+| `Q6`            | ![Q6 Tile](tiles/6/Q6.svg) |
+| `R6`            | ![R6 Tile](tiles/6/R6.svg) |
+| `S6`            | ![S6 Tile](tiles/6/S6.svg) |
+| `T6`            | ![T6 Tile](tiles/6/T6.svg) |
+| `t6`            | ![t6 Tile](tiles/6/t6.svg) |
+| `U6`            | ![U6 Tile](tiles/6/U6.svg) |
+| `u6`            | ![u6 Tile](tiles/6/u6.svg) |
+| `V6`            | ![V6 Tile](tiles/6/V6.svg) | 
+| `W6`            | ![W6 Tile](tiles/6/W6.svg) |
+| `w6`            | ![w6 Tile](tiles/6/w6.svg) |
+| `X6`            | ![X6 Tile](tiles/6/X6.svg) |
+| `x6`            | ![x6 Tile](tiles/6/x6.svg) |
+| `Y6`            | ![Y6 Tile](tiles/6/Y6.svg) |
+| `y6`            | ![y6 Tile](tiles/6/y6.svg) |
+| `Z6`            | ![Z6 Tile](tiles/6/Z6.svg) |
+| `z6`            | ![z6 Tile](tiles/6/z6.svg) |
 
 ### Array
 
