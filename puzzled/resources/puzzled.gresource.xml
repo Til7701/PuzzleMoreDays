@@ -20,6 +20,7 @@
         <file>puzzles/puzzle_a_day.json</file>
         <file>puzzles/puzzled.json</file>
         <file>puzzles/trominoes.json</file>
+        <file>puzzles/hexominoes.json</file>
         <file>puzzles/circles.json</file>
     </gresource>
     <!-- @formatter:off -->
