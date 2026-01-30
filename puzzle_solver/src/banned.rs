@@ -31,25 +31,17 @@ pub fn create_banned_bitmasks_for_filling(
 
     let mut banned_bitmasks = HashSet::new();
 
-    if min_tile_size == 0 {
-        // No tiles
-        return banned_bitmasks;
-    }
-    if min_tile_size == 1 {
-        // Tiles of size 1 can fill any gaps
-        return banned_bitmasks;
-    }
-    if min_tile_size >= 2 {
+    if min_tile_size > 1 {
         banned_bitmasks.extend(banned_bitmasks_1x1(board));
     }
-    if min_tile_size >= 3 {
+    if min_tile_size > 2 {
         banned_bitmasks.extend(banned_bitmasks_1x2(board));
     }
-    if min_tile_size >= 4 {
+    if min_tile_size > 3 {
         banned_bitmasks.extend(banned_bitmasks_2x2_corner(board));
         banned_bitmasks.extend(banned_bitmasks_1x3(board));
     }
-    if min_tile_size >= 5 {
+    if min_tile_size > 4 {
         banned_bitmasks.extend(banned_bitmasks_2x2(board));
     }
 
@@ -162,8 +154,8 @@ fn banned_bitmasks_with(
 ) -> HashSet<BannedBitmask> {
     let mut banned_bitmasks = HashSet::new();
 
-    for x in 0..board.get_array().dim().0 {
-        for y in 0..board.get_array().dim().1 {
+    for x in 0..board.get_array().dim().0 - 1 {
+        for y in 0..board.get_array().dim().1 - 1 {
             if !board.get_array()[(x, y)] {
                 let banned_bitmask = create_banned_bitmask_for_pattern_at(
                     &pattern,
@@ -199,10 +191,8 @@ fn create_banned_bitmask_for_pattern_at(
     if log::log_enabled!(log::Level::Debug) {
         debug!("pattern_board:");
         array_util::debug_print(&pattern_board);
-        debug!("pattern_bitmask: {:?}", pattern_bitmask);
         debug!("area_board:");
         array_util::debug_print(&area_board);
-        debug!("area_bitmask: {:?}", area_bitmask);
     }
 
     BannedBitmask {
