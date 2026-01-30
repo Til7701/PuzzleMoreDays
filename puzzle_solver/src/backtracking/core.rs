@@ -164,7 +164,7 @@ impl AllFillingSolver {
     /// returns: bool
     async fn solve_recursive(&mut self, tile_index: usize, shared: &AllFillingShared) -> bool {
         self.yield_counter += 1;
-        if self.yield_counter & 0xf == 0 {
+        if self.yield_counter & 0xff == 0 {
             tokio::task::yield_now().await;
             if shared.cancel_token.is_cancelled() {
                 return false;

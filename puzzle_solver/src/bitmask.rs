@@ -6,7 +6,7 @@ const BITS_IN_PRIMITIVE: usize = 128;
 /// Number of elements in the bitmask array. Adjust this to change the size of the bitmask.
 /// This should be kept small to allow for optimized operations. It may be increased, if
 /// more puzzles are added.
-const BITMASK_ARRAY_LENGTH: usize = 3;
+const BITMASK_ARRAY_LENGTH: usize = 2;
 /// A mask with all bits set in a single primitive type.
 const FULL_PRIMITIVE_MASK: u128 = u128::MAX;
 
@@ -143,7 +143,10 @@ impl Bitmask {
         match BITMASK_ARRAY_LENGTH {
             1 => {
                 self.bits[0] = a.bits[0] | b.bits[0];
-                return;
+            }
+            2 => {
+                self.bits[0] = a.bits[0] | b.bits[0];
+                self.bits[1] = a.bits[1] | b.bits[1];
             }
             _ => {
                 for i in 0..BITMASK_ARRAY_LENGTH {
@@ -166,7 +169,10 @@ impl Bitmask {
         match BITMASK_ARRAY_LENGTH {
             1 => {
                 self.bits[0] = a.bits[0] ^ b.bits[0];
-                return;
+            }
+            2 => {
+                self.bits[0] = a.bits[0] ^ b.bits[0];
+                self.bits[1] = a.bits[1] ^ b.bits[1];
             }
             _ => {
                 for i in 0..BITMASK_ARRAY_LENGTH {
@@ -189,7 +195,10 @@ impl Bitmask {
         match BITMASK_ARRAY_LENGTH {
             1 => {
                 self.bits[0] = a.bits[0] & b.bits[0];
-                return;
+            }
+            2 => {
+                self.bits[0] = a.bits[0] & b.bits[0];
+                self.bits[1] = a.bits[1] & b.bits[1];
             }
             _ => {
                 for i in 0..BITMASK_ARRAY_LENGTH {
@@ -212,6 +221,7 @@ impl Bitmask {
     pub(crate) fn and_is_zero(&self, other: &Bitmask) -> bool {
         match BITMASK_ARRAY_LENGTH {
             1 => (self.bits[0] & other.bits[0]) == 0,
+            2 => (self.bits[0] & other.bits[0]) == 0 && (self.bits[1] & other.bits[1]) == 0,
             _ => {
                 for i in 0..BITMASK_ARRAY_LENGTH {
                     if (self.bits[i] & other.bits[i]) != 0 {
@@ -236,6 +246,7 @@ impl Bitmask {
     pub(crate) fn and_equals(a: &Bitmask, b: &Bitmask, c: &Bitmask) -> bool {
         match BITMASK_ARRAY_LENGTH {
             1 => (a.bits[0] & b.bits[0]) == c.bits[0],
+            2 => (a.bits[0] & b.bits[0]) == c.bits[0] && (a.bits[1] & b.bits[1]) == c.bits[1],
             _ => {
                 for i in 0..BITMASK_ARRAY_LENGTH {
                     if (a.bits[i] & b.bits[i]) != c.bits[i] {
@@ -268,6 +279,10 @@ impl Bitmask {
             output.push(symbol);
         }
         output
+    }
+
+    pub(crate) fn max_bits() -> usize {
+        TOTAL_BITS
     }
 }
 

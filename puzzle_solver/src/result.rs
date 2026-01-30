@@ -22,4 +22,5 @@ pub struct TilePlacement {
 /// In the future, more reasons can be added as needed.
 pub enum UnsolvableReason {
     NoFit,
+    BoardTooLarge,
 }

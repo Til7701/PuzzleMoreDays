@@ -1,3 +1,4 @@
+use crate::bitmask::Bitmask;
 use crate::board::Board;
 use crate::plausibility::check;
 use crate::result::{Solution, UnsolvableReason};
@@ -71,6 +72,11 @@ pub async fn solve_all_filling(
             debug!("Tile {}:", i);
             array_util::debug_print(tile.base());
         }
+    }
+
+    if board.get_array().iter().filter(|c| !*c).count() > Bitmask::max_bits() {
+        debug!("Board too large for bitmask representation.");
+        return Err(UnsolvableReason::BoardTooLarge);
     }
 
     backtracking::solve_all_filling(board, tiles, cancel_token).await
