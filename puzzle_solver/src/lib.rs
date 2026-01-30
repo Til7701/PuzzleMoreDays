@@ -95,8 +95,6 @@ pub async fn solve_all_filling(
     )
     .await;
 
-    debug!("Solver: Solvable: {:?}", result);
-
     match result {
         Some(_) => Ok(Solution { placements: vec![] }),
         None => Err(UnsolvableReason::NoFit),
