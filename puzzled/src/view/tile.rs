@@ -3,6 +3,8 @@ use adw::prelude::Cast;
 use gtk::{Frame, Widget};
 use ndarray::Array2;
 
+const TILE_CSS_CLASS_COUNT: usize = 28;
+
 #[derive(Debug, Clone)]
 pub struct TileView {
     pub elements_with_offset: Vec<(Widget, PixelOffset)>,
@@ -19,8 +21,10 @@ impl TileView {
 
         for ((x, y), value) in base.indexed_iter() {
             if *value {
-                let css_classes: Vec<String> =
-                    vec!["tile-cell".to_string(), format!("tile-cell-{}", id)];
+                let css_classes: Vec<String> = vec![
+                    "tile-cell".to_string(),
+                    format!("tile-cell-{}", id % TILE_CSS_CLASS_COUNT),
+                ];
                 let cell = Frame::builder().css_classes(css_classes).build();
 
                 elements_with_offset.push((
