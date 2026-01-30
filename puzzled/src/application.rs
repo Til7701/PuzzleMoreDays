@@ -30,7 +30,7 @@ use adw::gdk::Display;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
-use gtk::{gio, glib, CssProvider, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION};
+use gtk::{gio, glib, CssProvider, License, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION};
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -132,10 +132,13 @@ impl PuzzledApplication {
             .application_icon("de.til7701.Puzzled")
             .developer_name("Tilman Holube")
             .version(VERSION)
-            .developers(vec!["Tilman Holube"])
+            .developers(vec!["Tilman Holube", "Jonas Pohl"])
             // Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.
             .translator_credits(&gettext("translator-credits"))
-            .copyright("© 2026 Tilman Holube\n\n This application comes with absolutely no warranty. See the GNU General Public Licence, version 3 or later for details.")
+            .copyright("© 2026 Tilman Holube and contributors")
+            .license_type(License::Gpl30)
+            .website("https://til7701.de/projects/puzzled")
+            .issue_url("https://github.com/til7701/til7701.de")
             .build();
 
         about.present(Some(&window));
