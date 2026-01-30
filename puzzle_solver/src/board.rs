@@ -93,6 +93,12 @@ impl IndexMut<[usize; 2]> for Board {
     }
 }
 
+impl From<Array2<bool>> for Board {
+    fn from(array: Array2<bool>) -> Self {
+        Board(array)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Board;

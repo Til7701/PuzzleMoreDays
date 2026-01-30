@@ -68,11 +68,12 @@ pub async fn solve_all_filling(
     let mut board = board;
     board.trim();
 
-    board.debug_print();
-    debug!("Tiles:");
-    for (i, tile) in tiles.iter().enumerate() {
-        debug!("Tile {}:", i);
-        array_util::debug_print(&tile.base());
+    if log::log_enabled!(log::Level::Debug) {
+        board.debug_print();
+        for (i, tile) in tiles.iter().enumerate() {
+            debug!("Tile {}:", i);
+            array_util::debug_print(tile.base());
+        }
     }
 
     let board_bitmask = Bitmask::from(board.get_array());
@@ -186,6 +187,29 @@ mod tests {
             }
         }
         let tiles = vec![];
+
+        let result = solve_all_filling(board, &tiles, CancellationToken::new()).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_solve_1() {
+        let board = arr2(&[
+            [true, true, false, false, true],
+            [true, true, false, false, true],
+            [true, true, true, false, false],
+            [true, false, false, true, true],
+            [false, false, false, true, true],
+        ])
+        .into();
+        let tiles = vec![
+            Tile::new(arr2(&[[false, true, true], [true, true, true]])),
+            Tile::new(arr2(&[
+                [true, true, false],
+                [true, true, false],
+                [false, true, true],
+            ])),
+        ];
 
         let result = solve_all_filling(board, &tiles, CancellationToken::new()).await;
         assert!(result.is_ok());
