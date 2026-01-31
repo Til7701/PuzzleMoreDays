@@ -2,7 +2,6 @@ use crate::array_util;
 use crate::bitmask::Bitmask;
 use crate::board::Board;
 use crate::tile::Tile;
-use log::log_enabled;
 use ndarray::{arr2, Array2};
 use std::hash::Hash;
 
@@ -331,14 +330,6 @@ fn create_banned_bitmask_for_pattern_at(
 
     let area_board = array_util::or_arrays_at(&board_array, area, x, y);
     let area_bitmask = Bitmask::from(&area_board);
-
-    if log_enabled!(log::Level::Debug) {
-        println!("Created BannedBitmask at ({}, {})", x, y);
-        print!("Pattern Board:\n");
-        array_util::debug_print(&pattern_board);
-        print!("Area Board:\n");
-        array_util::debug_print(&area_board);
-    }
 
     BannedBitmask {
         pattern: pattern_bitmask,
