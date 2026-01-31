@@ -292,6 +292,19 @@ impl Bitmask {
     pub(crate) const fn max_bits() -> usize {
         TOTAL_BITS
     }
+
+    pub(crate) fn to_array2(&self, rows: usize, cols: usize) -> Array2<bool> {
+        let mut array = Array2::from_elem((rows, cols), false);
+        for x in 0..cols {
+            for y in 0..rows {
+                let index = x * rows + y;
+                if index < self.relevant_bits() {
+                    array[[y, x]] = self.get_bit(index);
+                }
+            }
+        }
+        array
+    }
 }
 
 impl BitOr for Bitmask {
@@ -718,5 +731,19 @@ mod tests {
         assert_eq!(bitmask[7], true);
         assert_eq!(bitmask[8], false);
         assert_eq!(bitmask[9], false);
+    }
+
+    #[test]
+    fn test_to_array2() {
+        let mut bitmask = Bitmask::new(6);
+        bitmask.set_bit(0);
+        bitmask.set_bit(2);
+        bitmask.set_bit(5);
+
+        let array = bitmask.to_array2(2, 3);
+
+        let expected = arr2(&[[true, false, true], [false, false, true]]);
+
+        assert_eq!(array, expected);
     }
 }

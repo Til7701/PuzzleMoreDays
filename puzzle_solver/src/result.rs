@@ -1,16 +1,16 @@
-use crate::tile::Tile;
+use ndarray::Array2;
 
 /// Represents a successful solution to the puzzle.
-///
-/// TODO placements are not yet filled by the solver.
 pub struct Solution {
     pub placements: Vec<TilePlacement>,
 }
 
 /// Represents the placement of a tile at a specific position in the puzzle.
 pub struct TilePlacement {
-    /// The tile being placed.
-    pub tile: Tile,
+    /// The base of the tile being placed.
+    pub base: Array2<bool>,
+    /// The rotation in which the tile is placed.
+    pub rotation: Array2<bool>,
     /// The (x, y) position where the tile is placed.
     pub position: (usize, usize),
 }

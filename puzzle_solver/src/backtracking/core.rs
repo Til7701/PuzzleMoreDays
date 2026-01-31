@@ -24,7 +24,7 @@ pub async fn solve_filling(
         pruner,
         cancel_token: cancel_token.clone(),
     });
-    let mut set: JoinSet<bool> = JoinSet::new();
+    let mut set: JoinSet<Option<Vec<usize>>> = JoinSet::new();
 
     let result: Option<Vec<usize>> = {
         for mut solver in solvers.into_iter() {
@@ -48,13 +48,13 @@ pub async fn solve_filling(
     result
 }
 
-async fn await_completion(set: &mut JoinSet<bool>) -> Option<Vec<usize>> {
+async fn await_completion(set: &mut JoinSet<Option<Vec<usize>>>) -> Option<Vec<usize>> {
     let mut result: Option<Vec<usize>> = None;
     while let Some(res) = set.join_next().await {
         match res {
-            Ok(solved) => {
-                if solved {
-                    result = Some(Vec::new());
+            Ok(r) => {
+                if r.is_some() {
+                    result = r;
                     break;
                 }
             }
@@ -142,8 +142,13 @@ impl AllFillingSolver {
     /// exists.
     ///
     /// returns: bool: true if a solution is found, false otherwise.
-    async fn solve(&mut self, shared: &AllFillingShared) -> bool {
-        self.solve_recursive(self.start_tile_index, shared).await
+    async fn solve(&mut self, shared: &AllFillingShared) -> Option<Vec<usize>> {
+        let solved = self.solve_recursive(self.start_tile_index, shared).await;
+        if solved {
+            Some(self.used_tile_indices.clone())
+        } else {
+            None
+        }
     }
 
     /// The main recursive solver function.

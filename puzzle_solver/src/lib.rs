@@ -66,20 +66,22 @@ pub async fn solve_all_filling(
     let mut board = board;
     board.trim();
 
-    if log::log_enabled!(log::Level::Debug) {
-        board.debug_print();
-        for (i, tile) in tiles.iter().enumerate() {
-            debug!("Tile {}:", i);
-            array_util::debug_print(tile.base());
-        }
-    }
-
     if board.get_array().iter().filter(|c| !*c).count() > Bitmask::max_bits() {
         debug!("Board too large for bitmask representation.");
         return Err(UnsolvableReason::BoardTooLarge);
     }
 
-    backtracking::solve_all_filling(board, tiles, cancel_token).await
+    let result = backtracking::solve_all_filling(board, tiles, cancel_token).await;
+    match &result {
+        Ok(solution) => {
+            for placement in &solution.placements {
+                debug!("Placement at position {:?}", placement.position);
+                array_util::debug_print(&placement.rotation);
+            }
+        }
+        Err(_) => {}
+    };
+    result
 }
 
 #[cfg(test)]
