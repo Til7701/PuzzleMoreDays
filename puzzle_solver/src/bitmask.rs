@@ -64,7 +64,7 @@ impl Bitmask {
     /// * `index`: Index of the bit to set.
     ///
     /// returns: ()
-    pub(crate) fn set_bit(&mut self, index: usize) {
+    pub(crate) const fn set_bit(&mut self, index: usize) {
         let array_index = index / BITS_IN_PRIMITIVE;
         let bit_index = index % BITS_IN_PRIMITIVE;
         self.bits[array_index] |= 1 << bit_index;
@@ -78,10 +78,23 @@ impl Bitmask {
     ///
     /// returns: ()
     #[allow(dead_code)]
-    pub(crate) fn clear_bit(&mut self, index: usize) {
+    pub(crate) const fn clear_bit(&mut self, index: usize) {
         let array_index = index / BITS_IN_PRIMITIVE;
         let bit_index = index % BITS_IN_PRIMITIVE;
         self.bits[array_index] &= !(1 << bit_index);
+    }
+
+    /// Gets the value of the bit at the given index.
+    ///
+    /// # Arguments
+    ///
+    /// * `index`: Index of the bit to get.
+    ///
+    /// returns: bool
+    pub(crate) const fn get_bit(&self, index: usize) -> bool {
+        let array_index = index / BITS_IN_PRIMITIVE;
+        let bit_index = index % BITS_IN_PRIMITIVE;
+        (self.bits[array_index] & (1 << bit_index)) != 0
     }
 
     /// Returns the number of relevant bits in the bitmask.
@@ -89,7 +102,7 @@ impl Bitmask {
     /// # Arguments
     ///
     /// returns: usize
-    pub(crate) fn relevant_bits(&self) -> usize {
+    pub(crate) const fn relevant_bits(&self) -> usize {
         self.relevant_bits
     }
 
@@ -281,7 +294,7 @@ impl Bitmask {
         output
     }
 
-    pub(crate) fn max_bits() -> usize {
+    pub(crate) const fn max_bits() -> usize {
         TOTAL_BITS
     }
 }
@@ -409,6 +422,14 @@ mod tests {
                 assert_eq!(bitmask[i], true);
             }
         }
+    }
+
+    #[test]
+    fn test_get_bit() {
+        let mut bitmask = Bitmask::new(10);
+        bitmask.set_bit(5);
+        assert_eq!(bitmask.get_bit(5), true);
+        assert_eq!(bitmask.get_bit(4), false);
     }
 
     #[test]

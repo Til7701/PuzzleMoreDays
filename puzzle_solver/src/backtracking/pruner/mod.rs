@@ -6,15 +6,16 @@ use banned::BannedBitmask;
 mod banned;
 
 pub struct Pruner {
-    banned_bitmasks: Vec<BannedBitmask>,
+    /// For each relevant bit on the board, a list of banned bitmasks.
+    /// The bitmasks can be checked against an index of the current board state if it is
+    /// empty.
+    banned_bitmasks: Vec<Vec<BannedBitmask>>,
 }
 
 impl Pruner {
     /// Creates a new Pruner for use while filling the board with tiles.
     pub fn new_for_filling(board: &Board, tiles: &[Tile]) -> Self {
-        let banned_bitmasks = banned::create_banned_bitmasks_for_filling(&board, &tiles)
-            .into_iter()
-            .collect();
+        let banned_bitmasks = banned::create_banned_bitmasks_for_filling(&board, &tiles);
 
         Pruner { banned_bitmasks }
     }
@@ -29,9 +30,14 @@ impl Pruner {
     ///
     /// returns: bool
     pub fn prune(&self, current_board: &Bitmask) -> bool {
-        for banned in self.banned_bitmasks.iter() {
-            if banned.matches(current_board) {
-                return true;
+        // TODO start from the first empty cell on the board and end at the last empty cell
+        for index in 0..current_board.relevant_bits() {
+            if !current_board.get_bit(index) {
+                for banned in self.banned_bitmasks[index].iter() {
+                    if banned.matches(current_board) {
+                        return true;
+                    }
+                }
             }
         }
         false
