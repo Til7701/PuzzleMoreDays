@@ -8,9 +8,14 @@ use adw::prelude::GdkCairoContextExt;
 use adw::subclass::prelude::*;
 use gtk::cairo::Context;
 use gtk::prelude::{DrawingAreaExtManual, WidgetExt};
+use log::{error, info};
 use ndarray::{Array2, Axis};
+use std::collections::HashMap;
 
-#[derive(Debug, Default)]
+const HIGHLIGHT_OVERLAPPING_COLOR: RGBA = RGBA::new(1.0, 0.0, 0.0, 1.0);
+const HIGHLIGHT_OUT_OF_BOUNDS_COLOR: RGBA = RGBA::new(1.0, 1.0, 0.0, 1.0);
+
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 pub enum HighlightMode {
     #[default]
     None,
@@ -29,7 +34,7 @@ mod imp {
         pub current_rotation: RefCell<Array2<bool>>,
         pub position_cells: RefCell<Option<CellOffset>>,
         pub position_pixels: RefCell<PixelOffset>,
-        pub color: RefCell<Option<RGBA>>,
+        pub color: RefCell<HashMap<HighlightMode, RGBA>>,
         pub highlights: RefCell<Array2<HighlightMode>>,
     }
 
@@ -62,8 +67,9 @@ impl TileView {
 
         obj.imp().id.replace(id);
         obj.imp().base.replace(base.clone());
+        obj.imp().highlights.replace(Array2::default(base.dim()));
         obj.imp().current_rotation.replace(base);
-        obj.imp().color.replace(Some(random_color()));
+        obj.init_color(random_color()); // TODO Replace with color defined in config
 
         obj.set_draw_func({
             let self_clone = obj.clone();
@@ -73,11 +79,25 @@ impl TileView {
         obj
     }
 
+    fn init_color(&self, color: RGBA) {
+        let mut color_map = HashMap::new();
+        color_map.insert(HighlightMode::None, color);
+        color_map.insert(HighlightMode::Overlapping, color.with_alpha(0.5));
+        color_map.insert(HighlightMode::OutOfBounds, color.with_alpha(0.5));
+        self.imp().color.replace(color_map);
+    }
+
     fn draw(&self, cr: &Context, width: i32, height: i32) {
         let current_rotation = self.imp().current_rotation.borrow();
-        cr.set_source_color(&self.imp().color.borrow().unwrap_or_else(|| RGBA::BLACK));
+        let highlights = self.imp().highlights.borrow();
+
+        dbg!("draw", &current_rotation, &highlights);
+
+        let color_map = self.imp().color.borrow();
         for ((x, y), cell) in current_rotation.indexed_iter() {
             if *cell {
+                let highlight_mode = &highlights[(x, y)];
+                cr.set_source_color(&color_map[highlight_mode]);
                 cr.rectangle(
                     x as f64 * (width as f64 / current_rotation.dim().0 as f64),
                     y as f64 * (height as f64 / current_rotation.dim().1 as f64),
@@ -85,6 +105,28 @@ impl TileView {
                     height as f64 / current_rotation.dim().1 as f64,
                 );
                 cr.fill().expect("Failed to fill");
+
+                // Border
+                let border_color = match highlight_mode {
+                    HighlightMode::None => None,
+                    HighlightMode::Overlapping => Some(HIGHLIGHT_OVERLAPPING_COLOR),
+                    HighlightMode::OutOfBounds => Some(HIGHLIGHT_OUT_OF_BOUNDS_COLOR),
+                };
+                if let Some(border_color) = border_color {
+                    error!(
+                        "Highlighting cell ({}, {}) with mode {:?} and color {:?}",
+                        x, y, highlight_mode, border_color
+                    );
+                    cr.set_source_color(&border_color);
+                    cr.set_line_width(3.0);
+                    cr.rectangle(
+                        x as f64 * (width as f64 / current_rotation.dim().0 as f64),
+                        y as f64 * (height as f64 / current_rotation.dim().1 as f64),
+                        width as f64 / current_rotation.dim().0 as f64,
+                        height as f64 / current_rotation.dim().1 as f64,
+                    );
+                    cr.stroke().expect("Failed to stroke");
+                }
             }
         }
     }
@@ -97,7 +139,23 @@ impl TileView {
         self.imp().base.borrow().clone()
     }
 
-    pub fn set_current_rotation(&self, rotation: Array2<bool>) {
+    pub fn rotate_clockwise(&self) {
+        let base = self.current_rotation();
+        let mut rotated = base.reversed_axes();
+        rotated.invert_axis(Axis(0));
+        self.set_current_rotation(rotated);
+    }
+
+    pub fn flip_horizontal(&self) {
+        let mut base = self.current_rotation();
+        base.invert_axis(Axis(0));
+        self.set_current_rotation(base);
+    }
+
+    fn set_current_rotation(&self, rotation: Array2<bool>) {
+        self.imp()
+            .highlights
+            .replace(Array2::default(rotation.dim()));
         self.imp().current_rotation.replace(rotation);
         self.queue_draw();
     }
@@ -122,22 +180,13 @@ impl TileView {
         self.imp().position_pixels.replace(position_pixels);
     }
 
+    pub fn highlights(&self) -> Array2<HighlightMode> {
+        self.imp().highlights.borrow().clone()
+    }
+
     pub fn set_highlights(&self, highlights: Array2<HighlightMode>) {
         self.imp().highlights.replace(highlights);
         self.queue_draw();
-    }
-
-    pub fn rotate_clockwise(&self) {
-        let base = self.current_rotation();
-        let mut rotated = base.reversed_axes();
-        rotated.invert_axis(Axis(0));
-        self.set_current_rotation(rotated);
-    }
-
-    pub fn flip_horizontal(&self) {
-        let mut base = self.current_rotation();
-        base.invert_axis(Axis(0));
-        self.set_current_rotation(base);
     }
 }
 

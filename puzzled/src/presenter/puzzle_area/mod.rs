@@ -6,8 +6,10 @@ use crate::presenter::puzzle_area::puzzle_state::{
     Cell, PuzzleState, TileCellPlacement, UnusedTile,
 };
 use crate::presenter::puzzle_area::tile::TilePresenter;
+use crate::view::tile::HighlightMode;
 use crate::window::PuzzledWindow;
 use gtk::prelude::{FixedExt, GtkWindowExt, WidgetExt};
+use ndarray::Array2;
 use std::cell::RefCell;
 use std::mem::take;
 use std::rc::Rc;
@@ -198,21 +200,52 @@ impl PuzzleAreaPresenter {
     }
 
     pub fn update_highlights(&self) {
+        self.clear_highlights();
         let puzzle_state = self.extract_puzzle_state();
         if let Ok(puzzle_state) = puzzle_state {
             self.highlight_invalid_tile_parts(&puzzle_state);
         }
     }
 
+    fn clear_highlights(&self) {
+        let data = self.data.borrow();
+        let tile_views = &data.tile_views;
+        for tile_view in tile_views {
+            let highlights = Array2::default(tile_view.base().dim());
+            tile_view.set_highlights(highlights);
+        }
+    }
+
     pub fn highlight_invalid_tile_parts(&self, puzzle_state: &PuzzleState) {
-        // puzzle_state.grid.iter().for_each(|cell| match cell {
-        //     Cell::One(data, widget) => {
-        //         if !data.allowed {
-        //             self.highlight(OutOfBounds, widget);
-        //         }
-        //     }
-        //     Cell::Many(_, widgets) => widgets.iter().for_each(|w| self.highlight(Overlapping, w)),
-        //     _ => {}
-        // });
+        let data = self.data.borrow();
+        let tile_views = &data.tile_views;
+
+        puzzle_state.grid.iter().for_each(|cell| match cell {
+            Cell::One(data, tile_cell_placement) => {
+                if !data.allowed {
+                    if let Some(tile_view) = tile_views.get(tile_cell_placement.tile_id) {
+                        let mut highlights = tile_view.highlights();
+                        highlights[(
+                            tile_cell_placement.cell_position.0 as usize,
+                            tile_cell_placement.cell_position.1 as usize,
+                        )] = HighlightMode::OutOfBounds;
+                        tile_view.set_highlights(highlights);
+                    }
+                }
+            }
+            Cell::Many(_, tile_cell_placements) => {
+                for tile_cell_placement in tile_cell_placements {
+                    if let Some(tile_view) = tile_views.get(tile_cell_placement.tile_id) {
+                        let mut highlights = tile_view.highlights();
+                        highlights[(
+                            tile_cell_placement.cell_position.0 as usize,
+                            tile_cell_placement.cell_position.1 as usize,
+                        )] = HighlightMode::Overlapping;
+                        tile_view.set_highlights(highlights);
+                    }
+                }
+            }
+            _ => {}
+        });
     }
 }
