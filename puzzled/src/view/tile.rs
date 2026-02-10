@@ -8,7 +8,6 @@ use adw::prelude::GdkCairoContextExt;
 use adw::subclass::prelude::*;
 use gtk::cairo::Context;
 use gtk::prelude::{DrawingAreaExtManual, WidgetExt};
-use log::{error, info};
 use ndarray::{Array2, Axis};
 use std::collections::HashMap;
 
@@ -25,15 +24,15 @@ pub enum HighlightMode {
 
 mod imp {
     use super::*;
-    use std::cell::RefCell;
+    use std::cell::{Cell, RefCell};
 
     #[derive(Debug, Default)]
     pub struct PuzzledTileView {
-        pub id: RefCell<usize>,
+        pub id: Cell<usize>,
         pub base: RefCell<Array2<bool>>,
         pub current_rotation: RefCell<Array2<bool>>,
-        pub position_cells: RefCell<Option<CellOffset>>,
-        pub position_pixels: RefCell<PixelOffset>,
+        pub position_cells: Cell<Option<CellOffset>>,
+        pub position_pixels: Cell<PixelOffset>,
         pub color: RefCell<HashMap<HighlightMode, RGBA>>,
         pub highlights: RefCell<Array2<HighlightMode>>,
     }
@@ -91,19 +90,17 @@ impl TileView {
         let current_rotation = self.imp().current_rotation.borrow();
         let highlights = self.imp().highlights.borrow();
 
-        dbg!("draw", &current_rotation, &highlights);
-
         let color_map = self.imp().color.borrow();
         for ((x, y), cell) in current_rotation.indexed_iter() {
             if *cell {
+                let cell_width = width as f64 / current_rotation.dim().0 as f64;
+                let cell_height = height as f64 / current_rotation.dim().1 as f64;
+                let cell_x = x as f64 * cell_width;
+                let cell_y = y as f64 * cell_height;
+
                 let highlight_mode = &highlights[(x, y)];
                 cr.set_source_color(&color_map[highlight_mode]);
-                cr.rectangle(
-                    x as f64 * (width as f64 / current_rotation.dim().0 as f64),
-                    y as f64 * (height as f64 / current_rotation.dim().1 as f64),
-                    width as f64 / current_rotation.dim().0 as f64,
-                    height as f64 / current_rotation.dim().1 as f64,
-                );
+                cr.rectangle(cell_x, cell_y, cell_width, cell_height);
                 cr.fill().expect("Failed to fill");
 
                 // Border
@@ -113,17 +110,15 @@ impl TileView {
                     HighlightMode::OutOfBounds => Some(HIGHLIGHT_OUT_OF_BOUNDS_COLOR),
                 };
                 if let Some(border_color) = border_color {
-                    error!(
-                        "Highlighting cell ({}, {}) with mode {:?} and color {:?}",
-                        x, y, highlight_mode, border_color
-                    );
                     cr.set_source_color(&border_color);
-                    cr.set_line_width(3.0);
+                    const BORDER_WIDTH: f64 = 3.0;
+                    const HALF_BORDER_WIDTH: f64 = BORDER_WIDTH / 2.0;
+                    cr.set_line_width(BORDER_WIDTH);
                     cr.rectangle(
-                        x as f64 * (width as f64 / current_rotation.dim().0 as f64),
-                        y as f64 * (height as f64 / current_rotation.dim().1 as f64),
-                        width as f64 / current_rotation.dim().0 as f64,
-                        height as f64 / current_rotation.dim().1 as f64,
+                        cell_x + HALF_BORDER_WIDTH,
+                        cell_y + HALF_BORDER_WIDTH,
+                        cell_width - BORDER_WIDTH,
+                        cell_height - BORDER_WIDTH,
                     );
                     cr.stroke().expect("Failed to stroke");
                 }
@@ -132,7 +127,7 @@ impl TileView {
     }
 
     pub fn id(&self) -> usize {
-        *self.imp().id.borrow()
+        self.imp().id.get()
     }
 
     pub fn base(&self) -> Array2<bool> {
@@ -169,11 +164,11 @@ impl TileView {
     }
 
     pub fn position_cells(&self) -> Option<CellOffset> {
-        self.imp().position_cells.borrow().clone()
+        self.imp().position_cells.get()
     }
 
     pub fn position_pixels(&self) -> PixelOffset {
-        self.imp().position_pixels.borrow().clone()
+        self.imp().position_pixels.get()
     }
 
     pub fn set_position_pixels(&self, position_pixels: PixelOffset) {
