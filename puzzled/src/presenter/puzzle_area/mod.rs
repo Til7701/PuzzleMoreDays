@@ -2,12 +2,13 @@ use crate::global::state::get_state;
 use crate::offset::CellOffset;
 use crate::presenter::puzzle_area::board::BoardPresenter;
 use crate::presenter::puzzle_area::data::PuzzleAreaData;
-use crate::presenter::puzzle_area::puzzle_state::{Cell, PuzzleState, UnusedTile};
+use crate::presenter::puzzle_area::puzzle_state::{
+    Cell, PuzzleState, TileCellPlacement, UnusedTile,
+};
 use crate::presenter::puzzle_area::tile::TilePresenter;
-use crate::presenter::puzzle_area::HighlightMode::{OutOfBounds, Overlapping};
+use crate::view::tile::DrawingMode;
 use crate::window::PuzzledWindow;
 use gtk::prelude::{FixedExt, GtkWindowExt, WidgetExt};
-use gtk::Widget;
 use std::cell::RefCell;
 use std::mem::take;
 use std::rc::Rc;
@@ -20,13 +21,6 @@ mod tile;
 
 pub const WINDOW_TO_BOARD_RATIO: f64 = 2.0;
 pub const MIN_CELLS_TO_THE_SIDES_OF_BOARD: u32 = 6;
-pub const OVERLAP_HIGHLIGHT_CSS_CLASS: &str = "overlap-highlight";
-pub const OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS: &str = "out-of-bounds-highlight";
-
-enum HighlightMode {
-    Overlapping,
-    OutOfBounds,
-}
 
 #[derive(Debug, Clone)]
 pub struct PuzzleAreaPresenter {
@@ -152,28 +146,38 @@ impl PuzzleAreaPresenter {
         let board_position = data.grid_config.board_offset_cells;
 
         for (i, tile_view) in data.tile_views.iter().enumerate() {
-            let tile_position = tile_view.position_cells.ok_or("Tile position not set")?;
+            let tile_position = tile_view
+                .position_cells()
+                .ok_or_else(|| "Tile position not set".to_string())?;
             let tile_position = tile_position - board_position + CellOffset(1, 1);
-            for (element, offset) in &tile_view.elements_with_offset {
-                let element_position = tile_position + (*offset).into();
-                if element_position.0 >= 0
-                    && element_position.1 >= 0
-                    && (element_position.0 as usize) < state.grid.dim().0
-                    && (element_position.1 as usize) < state.grid.dim().1
+            for ((x, y), cell) in tile_view.current_rotation().indexed_iter() {
+                if !*cell {
+                    continue;
+                }
+
+                let cell_position = tile_position + CellOffset(x as i32, y as i32);
+                if cell_position.0 >= 0
+                    && cell_position.1 >= 0
+                    && (cell_position.0 as usize) < state.grid.dim().0
+                    && (cell_position.1 as usize) < state.grid.dim().1
                 {
-                    let idx: (usize, usize) = element_position.into();
+                    let idx: (usize, usize) = cell_position.into();
                     let new = match state.grid.get_mut(idx) {
                         None => return Err("Index out of bounds".to_string()),
                         Some(cell_ref) => {
                             let old = take(cell_ref);
+                            let tile_cell_placement = TileCellPlacement {
+                                tile_id: i,
+                                cell_position: CellOffset(x as i32, y as i32),
+                            };
                             match old {
-                                Cell::Empty(data) => Cell::One(data, element.clone()),
+                                Cell::Empty(data) => Cell::One(data, tile_cell_placement),
                                 Cell::One(data, existing_widget) => {
-                                    let widgets = vec![existing_widget, element.clone()];
+                                    let widgets = vec![existing_widget, tile_cell_placement];
                                     Cell::Many(data, widgets)
                                 }
                                 Cell::Many(data, mut widgets) => {
-                                    widgets.push(element.clone());
+                                    widgets.push(tile_cell_placement);
                                     Cell::Many(data, widgets)
                                 }
                             }
@@ -183,7 +187,7 @@ impl PuzzleAreaPresenter {
                 } else {
                     let unused_tile = UnusedTile {
                         id: i,
-                        base: tile_view.tile_base.clone(),
+                        base: tile_view.base().clone(),
                     };
                     state.unused_tiles.insert(unused_tile);
                 }
@@ -200,35 +204,42 @@ impl PuzzleAreaPresenter {
         }
     }
 
-    fn highlight(&self, mode: HighlightMode, widget: &Widget) {
-        widget.add_css_class(match mode {
-            Overlapping => OVERLAP_HIGHLIGHT_CSS_CLASS,
-            OutOfBounds => OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS,
-        });
-    }
-
-    fn clear_highlight(&self, widget: &Widget) {
-        widget.remove_css_class(OVERLAP_HIGHLIGHT_CSS_CLASS);
-        widget.remove_css_class(OUT_OF_BOUNDS_HIGHLIGHT_CSS_CLASS);
+    fn clear_highlights(&self) {
+        let data = self.data.borrow();
+        let tile_views = &data.tile_views;
+        for tile_view in tile_views {
+            tile_view.reset_drawing_modes();
+        }
     }
 
     pub fn highlight_invalid_tile_parts(&self, puzzle_state: &PuzzleState) {
+        let data = self.data.borrow();
+        let tile_views = &data.tile_views;
+
         puzzle_state.grid.iter().for_each(|cell| match cell {
-            Cell::One(data, widget) => {
+            Cell::One(data, tile_cell_placement) => {
                 if !data.allowed {
-                    self.highlight(OutOfBounds, widget);
+                    if let Some(tile_view) = tile_views.get(tile_cell_placement.tile_id) {
+                        tile_view.set_drawing_mode_at(
+                            tile_cell_placement.cell_position.0 as usize,
+                            tile_cell_placement.cell_position.1 as usize,
+                            DrawingMode::OutOfBounds,
+                        );
+                    }
                 }
             }
-            Cell::Many(_, widgets) => widgets.iter().for_each(|w| self.highlight(Overlapping, w)),
+            Cell::Many(_, tile_cell_placements) => {
+                for tile_cell_placement in tile_cell_placements {
+                    if let Some(tile_view) = tile_views.get(tile_cell_placement.tile_id) {
+                        tile_view.set_drawing_mode_at(
+                            tile_cell_placement.cell_position.0 as usize,
+                            tile_cell_placement.cell_position.1 as usize,
+                            DrawingMode::Overlapping,
+                        );
+                    }
+                }
+            }
             _ => {}
         });
-    }
-
-    pub fn clear_highlights(&self) {
-        self.data
-            .borrow()
-            .elements_in_fixed
-            .iter()
-            .for_each(|element| self.clear_highlight(element));
     }
 }

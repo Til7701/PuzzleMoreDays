@@ -1,5 +1,5 @@
 use adw::prelude::Cast;
-use gtk::prelude::{FrameExt, GridExt, WidgetExt};
+use gtk::prelude::{FrameExt, GridExt};
 use gtk::{Frame, Grid, Label, Widget};
 use puzzle_config::BoardConfig;
 

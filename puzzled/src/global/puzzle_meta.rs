@@ -1,7 +1,6 @@
 use crate::global::state::PuzzleTypeExtension;
-use adw::gio::ffi::GSettingsBackend;
-use adw::gio::{Settings, SettingsBackend};
-use adw::glib::{BoolError, Variant, VariantDict, VariantTy};
+use adw::gio::Settings;
+use adw::glib::{Variant, VariantDict, VariantTy};
 use adw::prelude::{SettingsExt, SettingsExtManual};
 use log::{debug, error};
 use puzzle_config::{BoardConfig, PuzzleConfigCollection, Target};

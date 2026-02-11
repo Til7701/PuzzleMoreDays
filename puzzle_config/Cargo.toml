@@ -5,9 +5,8 @@ version.workspace = true
 
 [dependencies]
 ndarray = { workspace = true }
-log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-time = { workspace = true, features = ["local-offset"] }
+time = { workspace = true }
 semver = { workspace = true }
 regex = { workspace = true }

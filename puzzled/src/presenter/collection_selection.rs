@@ -1,10 +1,10 @@
 use crate::application::PuzzledApplication;
+use crate::config;
 use crate::global::state::get_state_mut;
 use crate::presenter::main::MainPresenter;
 use crate::puzzles::{add_community_collection_from_string, get_puzzle_collection_store};
 use crate::view::info_pill::InfoPill;
 use crate::window::PuzzledWindow;
-use crate::{config, puzzles};
 use adw::gio::{Cancellable, File};
 use adw::glib::{Variant, VariantTy};
 use adw::prelude::{ActionMapExtManual, AdwDialogExt, AlertDialogExt, FileExtManual};

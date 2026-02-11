@@ -762,7 +762,6 @@ dependencies = [
 name = "puzzle_config"
 version = "0.2.1"
 dependencies = [
- "log",
  "ndarray",
  "regex",
  "semver",

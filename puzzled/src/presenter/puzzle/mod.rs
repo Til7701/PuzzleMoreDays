@@ -19,7 +19,6 @@ use std::time::Duration;
 
 #[derive(Clone)]
 pub struct PuzzlePresenter {
-    window: PuzzledWindow,
     puzzle_area_nav_page: PuzzleAreaPage,
     puzzle_info_presenter: PuzzleInfoPresenter,
     puzzle_area_presenter: PuzzleAreaPresenter,
@@ -37,7 +36,6 @@ impl PuzzlePresenter {
         let extension_presenter = ExtensionPresenter::new(window);
 
         PuzzlePresenter {
-            window: window.clone(),
             puzzle_area_nav_page: window.puzzle_area_nav_page(),
             puzzle_info_presenter,
             puzzle_area_presenter,

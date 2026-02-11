@@ -1,6 +1,5 @@
 use crate::global::state::PuzzleTypeExtension;
 use crate::offset::CellOffset;
-use gtk::Widget;
 use ndarray::Array2;
 use puzzle_config::PuzzleConfig;
 use std::collections::HashSet;
@@ -8,18 +7,26 @@ use std::collections::HashSet;
 /// Represents data associated with a cell in the puzzle grid.
 #[derive(Default, Debug)]
 pub struct CellData {
-    /// The position of the cell in the grid.
-    pub position: CellOffset,
     /// Indicates whether the cell is part of the playable board area.
     pub is_on_board: bool,
     /// Indicates whether placing a tile in this cell is allowed.
     pub allowed: bool,
 }
 
+/// Represents the presence of a cell of a tile in the puzzle grid.
+///
+/// The tile_id is used to identify which tile is present, and the cell_position indicates
+/// the position of the cell of the tile inside the tile.
+#[derive(Debug)]
+pub struct TileCellPlacement {
+    pub tile_id: usize,
+    /// The position of the cell of the tile inside the tile.
+    pub cell_position: CellOffset,
+}
+
 /// Represents a cell in the puzzle grid.
 ///
-/// It can be empty, contain one widget, or contain multiple widgets.
-/// A widget is an element of a tile that occupies the cell.
+/// It can be empty, contain one tile id, or contain multiple tile ids.
 ///
 /// A cell is not always a part of the playable board area.
 /// It may be part of the border area used to indicate out-of-bounds or the board design blocks
@@ -27,8 +34,8 @@ pub struct CellData {
 #[derive(Debug)]
 pub enum Cell {
     Empty(CellData),
-    One(CellData, Widget),
-    Many(CellData, Vec<Widget>),
+    One(CellData, TileCellPlacement),
+    Many(CellData, Vec<TileCellPlacement>),
 }
 
 impl Default for Cell {
@@ -76,7 +83,6 @@ impl PuzzleState {
             let is_adjacent = Self::is_adjacent_to_board(board_index, puzzle_config);
             let allowed = !is_adjacent;
             *cell = Cell::Empty(CellData {
-                position: CellOffset(x as i32, y as i32),
                 is_on_board: on_board,
                 allowed,
             });

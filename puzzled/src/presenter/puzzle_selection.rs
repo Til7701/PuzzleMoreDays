@@ -1,6 +1,6 @@
 use crate::application::PuzzledApplication;
 use crate::global::puzzle_meta::PuzzleMeta;
-use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension};
+use crate::global::state::{get_state, get_state_mut};
 use crate::presenter::main::MainPresenter;
 use crate::view::board::BoardView;
 use crate::view::info_pill::InfoPill;
@@ -258,15 +258,13 @@ fn create_tiles_preview(tiles: &[TileConfig], fixed: Fixed) {
         let tile_height = tile.base().dim().1 as i32;
         let y_offset = (max_tile_cell_height - tile_height) as f64 / 2.0;
 
-        for (widget, offset) in tile_view.elements_with_offset {
-            fixed.put(
-                &widget,
-                (current_x_offset_cells as f64 + offset.0) * CELL_SIZE,
-                (y_offset + offset.1) * CELL_SIZE,
-            );
-            widget.set_width_request(CELL_SIZE as i32);
-            widget.set_height_request(CELL_SIZE as i32);
-        }
+        fixed.put(
+            &tile_view,
+            current_x_offset_cells as f64 * CELL_SIZE,
+            y_offset * CELL_SIZE,
+        );
+        tile_view.set_width_request((CELL_SIZE * tile.base().dim().0 as f64) as i32);
+        tile_view.set_height_request((CELL_SIZE * tile.base().dim().1 as f64) as i32);
         let tile_width = tile.base().dim().0;
         let next_x_offset = current_x_offset_cells + tile_width + 1;
         current_x_offset_cells = next_x_offset;
