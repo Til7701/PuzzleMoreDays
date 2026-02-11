@@ -6,9 +6,9 @@ version.workspace = true
 [dependencies]
 puzzle_solver = { workspace = true }
 puzzle_config = { workspace = true }
-gettext-rs = { workspace = true, features = ["gettext-system"] }
-gtk = { workspace = true, package = "gtk4", features = ["gnome_47"] }
-adw = { workspace = true, package = "libadwaita", features = ["v1_7"] }
+gettext-rs = { workspace = true }
+gtk = { workspace = true }
+adw = { workspace = true }
 ndarray = { workspace = true }
 once_cell = { workspace = true }
 log = { workspace = true }

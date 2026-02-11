@@ -7,8 +7,6 @@ use std::collections::HashSet;
 /// Represents data associated with a cell in the puzzle grid.
 #[derive(Default, Debug)]
 pub struct CellData {
-    /// The position of the cell in the grid.
-    pub position: CellOffset,
     /// Indicates whether the cell is part of the playable board area.
     pub is_on_board: bool,
     /// Indicates whether placing a tile in this cell is allowed.
@@ -85,7 +83,6 @@ impl PuzzleState {
             let is_adjacent = Self::is_adjacent_to_board(board_index, puzzle_config);
             let allowed = !is_adjacent;
             *cell = Cell::Empty(CellData {
-                position: CellOffset(x as i32, y as i32),
                 is_on_board: on_board,
                 allowed,
             });

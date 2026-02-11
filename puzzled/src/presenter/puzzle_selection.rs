@@ -1,6 +1,6 @@
 use crate::application::PuzzledApplication;
 use crate::global::puzzle_meta::PuzzleMeta;
-use crate::global::state::{get_state, get_state_mut, PuzzleTypeExtension};
+use crate::global::state::{get_state, get_state_mut};
 use crate::presenter::main::MainPresenter;
 use crate::view::board::BoardView;
 use crate::view::info_pill::InfoPill;
