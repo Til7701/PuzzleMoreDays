@@ -12,7 +12,8 @@
     "--socket=fallback-x11",
     "--device=dri",
     "--socket=wayland",
-    "--env=RUST_LOG=Info"
+    "--env=RUST_BACKTRACE=1",
+    "--env=RUST_LOG=Debug"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin",
@@ -41,7 +42,7 @@
       "builddir": true,
       "buildsystem": "meson",
       "config-opts": [
-        "--buildtype=release"
+        "--buildtype=debug"
       ],
       "sources": [
         {
