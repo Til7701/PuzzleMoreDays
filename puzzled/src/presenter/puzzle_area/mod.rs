@@ -267,11 +267,7 @@ impl PuzzleAreaPresenter {
             data.fixed.remove(tile_matching_base);
         }
         data.hint_tile_view = Some(tile_view.clone());
-        data.fixed.put(
-            &tile_view,
-            placement.position().0 as f64,
-            placement.position().1 as f64,
-        );
+        data.fixed.put(&tile_view, 0.0, 0.0);
         drop(data);
         self.update_layout();
     }
@@ -285,7 +281,7 @@ impl PuzzleAreaPresenter {
         let tile_view = TileView::new(usize::MAX, placement.rotation().clone(), color_config);
 
         tile_view.set_position_cells(Some(
-            data.grid_config.board_offset_cells + placement.position().into(),
+            data.grid_config.board_offset_cells + placement.position().into() - CellOffset(1, 1), // Plus 1, 1 because the puzzle state has a border of once cell to provide information for highlighting
         ));
 
         let click_gesture = gtk::GestureClick::new();
