@@ -14,6 +14,9 @@ use tokio_util::sync::CancellationToken;
 
 pub type OnComplete = Box<dyn Fn(Result<Solution, UnsolvableReason>)>;
 
+/// Responsible for managing the hint button.
+///
+/// It calls the solver, when a hint has been requested and updates the icon of the button.
 #[derive(Debug, Clone)]
 pub struct HintButtonPresenter {
     hint_button: Button,
@@ -30,6 +33,17 @@ impl HintButtonPresenter {
 
     pub fn setup(&self) {}
 
+    /// Calls the solver and updates the hint button state.
+    ///
+    /// When the solver is finished, the `on_complete` callback will be called with the result of
+    /// the solver.
+    ///
+    /// # Arguments
+    ///
+    /// * `puzzle_state`: The current state of the puzzle.
+    /// * `on_complete`: Callback to be called when the solver has finished.
+    ///
+    /// returns: ()
     pub fn calculate_hint(&self, puzzle_state: &mut PuzzleState, on_complete: OnComplete) {
         let state = get_state();
         let calculate_solvability = match &state.puzzle_type_extension {

@@ -6,10 +6,10 @@ use crate::application::PuzzledApplication;
 use crate::global::puzzle_meta::PuzzleMeta;
 use crate::global::state::{get_state, get_state_mut, SolverState};
 use crate::presenter::puzzle::extension::ExtensionPresenter;
-use crate::presenter::puzzle::hint::HintButtonPresenter;
+use crate::presenter::puzzle::hint::{HintButtonPresenter, HintButtonState};
 use crate::presenter::puzzle::info::PuzzleInfoPresenter;
 use crate::presenter::puzzle_area::PuzzleAreaPresenter;
-use crate::solver::is_solved;
+use crate::solver::{interrupt_solver_call, is_solved};
 use crate::view::puzzle_area_page::PuzzleAreaPage;
 use crate::window::PuzzledWindow;
 use adw::prelude::{ActionMapExtManual, NavigationPageExt};
@@ -97,10 +97,13 @@ impl PuzzlePresenter {
         let puzzle_state = self.puzzle_area_presenter.extract_puzzle_state();
 
         if let Ok(puzzle_state) = puzzle_state {
+            let mut state = get_state_mut();
+            interrupt_solver_call(&state);
+            state.solver_state = SolverState::Done;
+            self.hint_button_presenter
+                .display_state(&HintButtonState::Bulb);
+            drop(state);
             if is_solved(&puzzle_state) {
-                let mut state = get_state_mut();
-                state.solver_state = SolverState::Done;
-                drop(state);
                 self.handle_solved();
             }
         }

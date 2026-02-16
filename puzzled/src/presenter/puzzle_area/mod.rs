@@ -245,6 +245,7 @@ impl PuzzleAreaPresenter {
         });
     }
 
+    /// Show the placement of a tile as a hint.
     pub fn show_hint_tile(&self, placement: &TilePlacement) {
         let mut data = self.data.borrow_mut();
         let tile_matching_base = data
@@ -281,7 +282,7 @@ impl PuzzleAreaPresenter {
         let tile_view = TileView::new(usize::MAX, placement.rotation().clone(), color_config);
 
         tile_view.set_position_cells(Some(
-            data.grid_config.board_offset_cells + placement.position().into() - CellOffset(1, 1), // Plus 1, 1 because the puzzle state has a border of once cell to provide information for highlighting
+            data.grid_config.board_offset_cells + placement.position().into() - CellOffset(1, 1), // Plus 1, 1 because the puzzle state has a border of one cell to provide information for highlighting
         ));
 
         let click_gesture = gtk::GestureClick::new();
@@ -296,6 +297,7 @@ impl PuzzleAreaPresenter {
         tile_view
     }
 
+    /// Remove the hint tile from the puzzle area, if one is currently shown.
     pub fn remove_hint_tile(&self) {
         let mut data = self.data.borrow_mut();
         if let Some(tile_view) = &data.hint_tile_view {
