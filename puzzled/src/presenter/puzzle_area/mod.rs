@@ -136,6 +136,10 @@ impl PuzzleAreaPresenter {
             .for_each(|e| fixed.remove(&e));
         data.tile_views.clear();
         data.board_view = None;
+        if let Some(tile_view) = &data.hint_tile_view {
+            fixed.remove(tile_view);
+        }
+        data.hint_tile_view = None;
     }
 
     pub fn extract_puzzle_state(&self) -> Result<PuzzleState, String> {
