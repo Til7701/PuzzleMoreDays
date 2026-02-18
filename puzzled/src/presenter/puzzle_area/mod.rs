@@ -119,6 +119,7 @@ impl PuzzleAreaPresenter {
     /// This moves the puzzle area elements according to the current window size.
     pub fn update_layout(&self) {
         self.update_grid_layout();
+        self.set_min_size();
         self.board_presenter.update_layout();
         self.tile_presenter.update_layout();
     }
@@ -141,9 +142,9 @@ impl PuzzleAreaPresenter {
         let cell_size_pixel = cell_width_pixel.min(cell_height_pixel);
 
         let grid_h_cell_count = (available_width_pixel / cell_size_pixel as f64).floor() as u32;
-        let min_grid_h_cell_count = board_size_cells_with_margin.0 as u32;
-        let min_grid_v_cell_count = board_size_cells_with_margin.1 as u32;
+        let min_grid_h_cell_count = required_cells.0 as u32;
         let grid_v_cell_count = (available_height_pixel / cell_size_pixel as f64).floor() as u32;
+        let min_grid_v_cell_count = required_cells.1 as u32;
 
         let board_offset_cells = CellOffset(
             ((grid_h_cell_count - board_size_cells.0 as u32) / 2) as i32,
@@ -204,8 +205,6 @@ impl PuzzleAreaPresenter {
         }
 
         data.grid_config = grid_config;
-        drop(data);
-        self.set_min_size();
     }
 
     fn move_all_elements_by(&self, data: &PuzzleAreaData, offset_cells: CellOffset) {
