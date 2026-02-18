@@ -32,7 +32,7 @@ impl TilePresenter {
         let start_position = {
             let data = self.data.borrow();
             let grid_config = &data.grid_config;
-            start_position_cell.mul_scalar(grid_config.cell_width_pixel as f64)
+            start_position_cell.mul_scalar(grid_config.cell_size_pixel as f64)
         };
         tile_view.set_position_pixels(start_position.into());
         tile_view.set_position_cells(Some(*start_position_cell));
@@ -89,20 +89,11 @@ impl TilePresenter {
                     let mut pos = tile_view.position_pixels();
                     pos = pos.add_tuple((dx, dy));
 
-                    if pos.0 < 0.0 {
-                        pos.0 = 0.0;
-                    }
-                    if pos.1 < 0.0 {
-                        pos.1 = 0.0;
-                    }
-
                     let fixed = &data.fixed;
-                    if pos.0 + tile_view.width() as f64 > fixed.width() as f64 {
-                        pos.0 = fixed.width() as f64 - tile_view.width() as f64;
-                    }
-                    if pos.1 + tile_view.height() as f64 > fixed.height() as f64 {
-                        pos.1 = fixed.height() as f64 - tile_view.height() as f64;
-                    }
+                    let max_x = fixed.width() as f64 - tile_view.width() as f64;
+                    let max_y = fixed.height() as f64 - tile_view.height() as f64;
+                    pos.0 = pos.0.clamp(0.0, max_x);
+                    pos.1 = pos.1.clamp(0.0, max_y);
 
                     pos
                 };
@@ -115,7 +106,9 @@ impl TilePresenter {
             move |_, _, _| {
                 let snapped = {
                     let mut data = self_clone.data.borrow_mut();
-                    let grid_size = data.grid_config.cell_width_pixel;
+                    let grid_size = data.grid_config.cell_size_pixel;
+                    let grid_h_cell_count = data.grid_config.grid_h_cell_count;
+                    let grid_v_cell_count = data.grid_config.grid_v_cell_count;
                     let tile_view = {
                         match data.tile_views.get_mut(tile_view_index) {
                             Some(tv) => tv,
@@ -128,10 +121,17 @@ impl TilePresenter {
                         .round()
                         .mul_scalar(grid_size as f64);
 
-                    let new_position_cells =
+                    let max_h_cell_position =
+                        grid_h_cell_count as i32 - tile_view.current_rotation().dim().0 as i32;
+                    let max_v_cell_position =
+                        grid_v_cell_count as i32 - tile_view.current_rotation().dim().1 as i32;
+                    let mut new_position_cells =
                         self_clone.calculate_cells_from_pixels(&pos, grid_size as f64);
+                    new_position_cells.0 = new_position_cells.0.clamp(0, max_h_cell_position);
+                    new_position_cells.1 = new_position_cells.1.clamp(0, max_v_cell_position);
+
                     tile_view.set_position_cells(Some(new_position_cells));
-                    pos
+                    new_position_cells.mul_scalar(grid_size as f64).into()
                 };
                 self_clone.move_to(tile_view_index, snapped);
                 on_position_changed();
@@ -161,7 +161,7 @@ impl TilePresenter {
         self.setup_tile_updating_gesture(tile_view_index, &gesture, on_position_changed.clone(), {
             move |tile_view| tile_view.rotate_clockwise()
         });
-        draggable.add_controller(gesture.clone().upcast::<EventController>());
+        draggable.add_controller(gesture.upcast::<EventController>());
 
         // Flip
         let gesture = GestureClick::new();
@@ -169,7 +169,7 @@ impl TilePresenter {
         self.setup_tile_updating_gesture(tile_view_index, &gesture, on_position_changed, {
             move |tile_view| tile_view.flip_horizontal()
         });
-        draggable.add_controller(gesture.clone().upcast::<EventController>());
+        draggable.add_controller(gesture.upcast::<EventController>());
     }
 
     fn setup_tile_updating_gesture<F: Fn(&TileView) -> () + 'static>(
@@ -206,7 +206,7 @@ impl TilePresenter {
         for i in 0..len {
             let pos: PixelOffset = {
                 let mut data = self.data.borrow_mut();
-                let grid_size = data.grid_config.cell_width_pixel;
+                let grid_size = data.grid_config.cell_size_pixel;
                 let tile_view = &mut data.tile_views[i];
 
                 let dims = tile_view.current_rotation().dim();
@@ -223,7 +223,7 @@ impl TilePresenter {
         }
         let data = self.data.borrow();
         if let Some(tile_view) = &data.hint_tile_view {
-            let grid_size = data.grid_config.cell_width_pixel;
+            let grid_size = data.grid_config.cell_size_pixel;
             let dims = tile_view.current_rotation().dim();
             tile_view.set_width_request(dims.0 as i32 * grid_size as i32);
             tile_view.set_height_request(dims.1 as i32 * grid_size as i32);
