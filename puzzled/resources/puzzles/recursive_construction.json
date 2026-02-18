@@ -1,0 +1,18 @@
+{
+  "puzzled": "0.2.0",
+  "name": "Recursive Construction",
+  "author": "Puzzled",
+  "id": "de.til7701.Puzzled.RecursiveConstruction",
+  "puzzles": [
+    {
+      "name": "D2 x 2",
+      "tiles": [
+        {
+          "layout": "D2",
+          "count": 4
+        }
+      ],
+      "board": "2x4"
+    }
+  ]
+}

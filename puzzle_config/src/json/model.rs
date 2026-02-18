@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::num::NonZeroU32;
 
 #[derive(Deserialize)]
 pub struct PuzzleCollection {
@@ -75,6 +76,7 @@ pub enum Tile {
     Custom {
         layout: TileLayout,
         color: Option<Color>,
+        count: Option<NonZeroU32>,
     },
 }
 
