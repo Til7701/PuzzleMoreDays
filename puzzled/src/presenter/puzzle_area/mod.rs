@@ -121,19 +121,15 @@ impl PuzzleAreaPresenter {
         let board_cell_width = puzzle_config.board_config().layout().dim().0 as i32;
         let board_cell_height = puzzle_config.board_config().layout().dim().1 as i32;
 
-        let required_cell_width = board_cell_width + MIN_CELLS_TO_THE_SIDES_OF_BOARD * 2;
-        let required_cell_height =
+        let required_h_cells = board_cell_width + MIN_CELLS_TO_THE_SIDES_OF_BOARD * 2;
+        let required_v_cells =
             board_cell_height + MIN_CELLS_TO_THE_TOP_OF_BOARD + MIN_CELLS_TO_THE_BOTTOM_OF_BOARD;
-        let initial_cell_size_pixel = (self.window.width() as f64 / required_cell_width as f64)
-            .floor()
-            .min((self.window.height() as f64 / required_cell_height as f64).floor())
-            as u32;
         GridConfig {
-            grid_h_cell_count: required_cell_width as u32,
-            grid_v_cell_count: required_cell_height as u32,
-            min_grid_h_cell_count: required_cell_width as u32,
-            min_grid_v_cell_count: required_cell_height as u32,
-            cell_size_pixel: initial_cell_size_pixel,
+            grid_h_cell_count: required_h_cells as u32,
+            grid_v_cell_count: required_v_cells as u32,
+            min_grid_h_cell_count: required_h_cells as u32,
+            min_grid_v_cell_count: required_v_cells as u32,
+            cell_size_pixel: 1,
             board_offset_cells: CellOffset(
                 MIN_CELLS_TO_THE_SIDES_OF_BOARD,
                 MIN_CELLS_TO_THE_TOP_OF_BOARD,
@@ -159,8 +155,13 @@ impl PuzzleAreaPresenter {
     /// new calculations.
     fn update_grid_layout(&self) {
         let available_width_pixel = self.window.width() as f64;
-        let available_height_pixel = self.window.height() as f64
-            - self.window.puzzle_area_nav_page().header_bar().height() as f64;
+        let available_height_pixel = {
+            let mut header_height = self.window.puzzle_area_nav_page().header_bar().height() as f64;
+            if header_height == 0.0 {
+                header_height = 40.0;
+            }
+            self.window.height() as f64 - header_height
+        };
 
         let board_size_cells = self.board_size_cells();
         let board_size_cells_with_margin = board_size_cells.add_tuple((
