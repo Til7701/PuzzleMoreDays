@@ -124,6 +124,12 @@ impl PuzzleAreaPresenter {
         self.tile_presenter.update_layout();
     }
 
+    /// Calculates how the grid should be laid out based on the current positions of the tiles
+    /// and the size of the board.
+    ///
+    /// This function should ensure, that all tiles are visible and the board is centered.
+    /// [Self::update_grid_config()] is called if the grid layout needs to be updated based on the
+    /// new calculations.
     fn update_grid_layout(&self) {
         let available_width_pixel = self.window.width() as f64;
         let available_height_pixel = self.window.height() as f64
@@ -166,6 +172,7 @@ impl PuzzleAreaPresenter {
         }
     }
 
+    /// Get the dimensions of the board in cells.
     fn board_size_cells(&self) -> CellOffset {
         let state = get_state();
         let board_size = state
@@ -176,6 +183,7 @@ impl PuzzleAreaPresenter {
         CellOffset(board_size.0 as i32, board_size.1 as i32)
     }
 
+    /// Calculates the dimensions required to fit all tiles in their current positions.
     fn tiles_required_cells(&self) -> CellOffset {
         let data = self.data.borrow();
         let tile_views = &data.tile_views;
@@ -191,6 +199,7 @@ impl PuzzleAreaPresenter {
         required_cells - lowest_position_cells
     }
 
+    /// Update the grid configuration and move all elements in case the board offset has changed.
     fn update_grid_config(&self, grid_config: GridConfig) {
         let mut data = self.data.borrow_mut();
 
@@ -207,6 +216,10 @@ impl PuzzleAreaPresenter {
         data.grid_config = grid_config;
     }
 
+    /// Moves all elements by the given offset in cells.
+    ///
+    /// If the new position of an element would be negative, it is set to 0 to ensure that all
+    /// elements remain visible.
     fn move_all_elements_by(&self, data: &PuzzleAreaData, offset_cells: CellOffset) {
         for tile_view in &data.tile_views {
             if let Some(position_cells) = tile_view.position_cells() {
@@ -228,6 +241,11 @@ impl PuzzleAreaPresenter {
         }
     }
 
+    /// Sets the minimum size of the window based on the current grid configuration.
+    ///
+    /// This has to be set on the window instead of the Fixed, since the AdwBreakpointBin
+    /// that everything is wrapped in, does not work well with changing width requests
+    /// if the children.
     fn set_min_size(&self) {
         let min_board_elements_width = self.board_presenter.get_min_element_width();
         let data = self.data.borrow();
