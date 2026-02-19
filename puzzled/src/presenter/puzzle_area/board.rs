@@ -24,7 +24,7 @@ impl BoardPresenter {
     pub fn setup(&self, puzzle_config: &PuzzleConfig) {
         let board_view =
             BoardView::new(&puzzle_config.board_config()).expect("Failed to initialize board view");
-        let widget = board_view.parent.clone().upcast::<Widget>();
+        let widget = board_view.clone().upcast::<Widget>();
         let mut data = self.data.borrow_mut();
         data.add_to_fixed(&widget, &PixelOffset::default());
 
@@ -35,13 +35,13 @@ impl BoardPresenter {
         self.update_target_selection();
         let data = self.data.borrow();
         if let Some(board_view) = &data.board_view {
-            let widget = board_view.parent.clone().upcast::<Widget>();
+            let widget = board_view.clone().upcast::<Widget>();
             let grid_config = &data.grid_config;
             let pos = grid_config
                 .board_offset_cells
                 .mul_scalar(grid_config.cell_size_pixel as f64);
             data.fixed.move_(&widget, pos.0 as f64, pos.1 as f64);
-            for widget in board_view.elements.iter() {
+            for widget in board_view.elements().iter() {
                 widget.set_width_request(grid_config.cell_size_pixel as i32);
                 widget.set_height_request(grid_config.cell_size_pixel as i32);
             }
@@ -59,7 +59,7 @@ impl BoardPresenter {
             }) => {
                 if let Some(board_view) = &data.board_view {
                     target.indices.iter().for_each(|TargetIndex(x, y)| {
-                        if let Some(widget) = board_view.parent.child_at(*x as i32, *y as i32) {
+                        if let Some(widget) = board_view.child_at(*x as i32, *y as i32) {
                             widget.add_css_class(TARGET_SELECTION_CLASS);
                         }
                     })
@@ -72,7 +72,7 @@ impl BoardPresenter {
     fn clear_target_selection(&self) {
         let data = self.data.borrow();
         if let Some(board_view) = &data.board_view {
-            board_view.elements.iter().for_each(|widget| {
+            board_view.elements().iter().for_each(|widget| {
                 widget.remove_css_class(TARGET_SELECTION_CLASS);
             });
         }
