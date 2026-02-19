@@ -313,16 +313,14 @@ fn create_board_preview(board: &BoardConfig, preview_box: gtk::Box) {
 
     match board_view {
         Ok(bv) => {
-            bv.parent.set_property("halign", Align::Center);
-            preview_box.append(&bv.parent);
+            bv.set_property("halign", Align::Center);
+            preview_box.append(&bv);
 
             let min_element_width = bv.get_min_element_size();
             let size_per_cell = CELL_SIZE.max(min_element_width as f64);
 
-            bv.parent
-                .set_width_request(size_per_cell as i32 * board.layout().dim().0 as i32);
-            bv.parent
-                .set_height_request(size_per_cell as i32 * board.layout().dim().1 as i32);
+            bv.set_width_request(size_per_cell as i32 * board.layout().dim().0 as i32);
+            bv.set_height_request(size_per_cell as i32 * board.layout().dim().1 as i32);
         }
         Err(e) => {
             error!("Failed to create board preview: {}", e);
