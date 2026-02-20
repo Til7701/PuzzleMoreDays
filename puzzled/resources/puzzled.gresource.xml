@@ -21,6 +21,7 @@
         <file preprocess="json-stripblanks">puzzles/puzzle_a_day.json</file>
         <file preprocess="json-stripblanks">puzzles/puzzled.json</file>
         <file preprocess="json-stripblanks">puzzles/trominoes.json</file>
+        <file preprocess="json-stripblanks">puzzles/tetrominoes.json</file>
         <file preprocess="json-stripblanks">puzzles/hexominoes.json</file>
         <file preprocess="json-stripblanks">puzzles/circles.json</file>
         <file preprocess="json-stripblanks">puzzles/chess.json</file>
