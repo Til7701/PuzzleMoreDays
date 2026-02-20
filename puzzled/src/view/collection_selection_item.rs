@@ -75,6 +75,7 @@ impl CollectionSelectionItem {
             .puzzle_solved_pill
             .set_label(format!("{} / {}", solved, total));
         self.imp().solved_count.set((solved, total));
+        self.imp().puzzle_solved_pill.highlight(solved == total);
     }
 
     pub fn increment_solved_count(&self) {

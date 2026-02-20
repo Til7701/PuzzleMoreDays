@@ -57,4 +57,12 @@ impl InfoPill {
             .property("application", application)
             .build()
     }
+
+    pub fn highlight(&self, highlight: bool) {
+        if highlight {
+            self.imp().icon.add_css_class("accent");
+        } else {
+            self.imp().icon.remove_css_class("accent");
+        }
+    }
 }
