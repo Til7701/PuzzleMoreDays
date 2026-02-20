@@ -1,8 +1,9 @@
 {
   "puzzled": "0.4.0",
   "name": "Recursive Construction",
-  "author": "Puzzled",
   "id": "de.til7701.Puzzled.RecursiveConstruction",
+  "author": "Puzzled",
+  "description": "Build tiles out of themselves, but scaled up.",
   "puzzles": [
     {
       "name": "D2 x 2",

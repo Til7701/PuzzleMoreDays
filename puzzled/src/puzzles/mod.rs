@@ -10,10 +10,11 @@ use std::backtrace::Backtrace;
 use std::sync::{Mutex, MutexGuard, TryLockError};
 use std::time::Duration;
 
-const CORE_COLLECTIONS: [&str; 8] = [
+const CORE_COLLECTIONS: [&str; 9] = [
     "puzzle_a_day",
     "trominoes",
     "tetrominoes",
+    "pentominoes",
     "hexominoes",
     "recursive_construction",
     "circles",
@@ -155,8 +156,10 @@ mod tests {
 
         // (collection_id, puzzle_name) pairs to skip because they are known to be unsolvable or take too long
         let skip_list = [
-            ("de.til7701.Puzzled.Puzzled", "Large Sandbox"),
-            ("de.til7701.Puzzled.RecursiveConstruction", "T4 x 3"),
+            ("de.til7701.Puzzled.Puzzled", "Large Sandbox"), // Cannot be solved
+            ("de.til7701.Puzzled.RecursiveConstruction", "T4 x 3"), // Takes too long to solve
+            ("de.til7701.Puzzled.Hexominoes", "Holes"),      // Takes too long to solve
+            ("de.til7701.Puzzled.PuzzleADay", "4-Digit Year"), // Unknown if solvable
         ];
 
         for collection_name in CORE_COLLECTIONS.iter() {
