@@ -18,18 +18,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use crate::config::VERSION;
+use crate::global::settings::{Preferences, ShowBoardGridLines};
 use crate::global::state::get_state_mut;
 use crate::presenter::collection_selection::CollectionSelectionPresenter;
 use crate::presenter::main::MainPresenter;
 use crate::presenter::puzzle::PuzzlePresenter;
 use crate::presenter::puzzle_selection::PuzzleSelectionPresenter;
 use crate::puzzles;
+use crate::view::tile::{DrawingMode, TileView};
 use crate::window::PuzzledWindow;
 use adw::gdk::Display;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
 use gtk::{gio, glib, CssProvider, License, Settings, STYLE_PROVIDER_PRIORITY_APPLICATION};
+use ndarray::array;
+use puzzle_config::ColorConfig;
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -149,6 +153,12 @@ impl PuzzledApplication {
             .object("preferences_dialog")
             .expect("Missing `preferences_dialog` in resource");
 
+        let show_board_grid_lines: adw::SwitchRow = builder
+            .object("show_board_grid_lines")
+            .expect("Missing `show_board_grid_lines` in resource");
+        let preferences = Preferences::default();
+        preferences.bind(ShowBoardGridLines, &show_board_grid_lines, "active");
+
         if let Some(window) = self.active_window() {
             dialog.present(Some(&window));
         }
@@ -157,12 +167,66 @@ impl PuzzledApplication {
     fn show_how_to_play(&self) {
         const RESOURCE_PATH: &str = "/de/til7701/Puzzled/how-to-play-dialog.ui";
         let builder = gtk::Builder::from_resource(RESOURCE_PATH);
-        let dialog: adw::Dialog = builder
+        let dialog: adw::Window = builder
             .object("how_to_play_dialog")
             .expect("Missing `how_to_play_dialog` in resource");
-        if let Some(window) = self.active_window() {
-            dialog.present(Some(&window));
-        }
+
+        const CELL_SIZE: i32 = 30;
+
+        let overlapping_fixed: gtk::Fixed = builder
+            .object("overlapping_fixed")
+            .expect("Missing `overlapping_fixed` in resource");
+        let left_tile = TileView::new(
+            0,
+            array![[true, false], [true, true]],
+            ColorConfig::default_with_index(0),
+        );
+        left_tile.set_drawing_mode_at(1, 1, DrawingMode::Overlapping);
+        left_tile.set_width_request(CELL_SIZE * 2);
+        left_tile.set_height_request(CELL_SIZE * 2);
+
+        let right_tile = TileView::new(
+            0,
+            array![[true, true], [false, true]],
+            ColorConfig::default_with_index(5),
+        );
+        right_tile.set_width_request(CELL_SIZE * 2);
+        right_tile.set_height_request(CELL_SIZE * 2);
+        right_tile.set_drawing_mode_at(0, 0, DrawingMode::Overlapping);
+
+        overlapping_fixed.put(&left_tile, 0.0, 0.0);
+        overlapping_fixed.put(&right_tile, CELL_SIZE as f64, CELL_SIZE as f64);
+
+        let outside_fixed: gtk::Fixed = builder
+            .object("outside_fixed")
+            .expect("Missing `outside_fixed` in resource");
+        let tile = TileView::new(
+            0,
+            array![[true, true], [false, true]],
+            ColorConfig::default_with_index(0),
+        );
+        tile.set_drawing_mode_at(1, 1, DrawingMode::OutOfBounds);
+        tile.set_width_request(CELL_SIZE * 2);
+        tile.set_height_request(CELL_SIZE * 2);
+        outside_fixed.put(&tile, 0.0, 0.0);
+
+        let hint_fixed: gtk::Fixed = builder
+            .object("hint_fixed")
+            .expect("Missing `hint_fixed` in resource");
+        let mut color_config = ColorConfig::default_with_index(0);
+        color_config = ColorConfig::new(
+            color_config.red(),
+            color_config.green(),
+            color_config.blue(),
+            128,
+        );
+        let tile = TileView::new(0, array![[true, true], [false, true]], color_config);
+        tile.set_width_request(CELL_SIZE * 2);
+        tile.set_height_request(CELL_SIZE * 2);
+
+        hint_fixed.put(&tile, 0.0, 0.0);
+
+        dialog.present();
     }
 
     fn load_css(&self) {
@@ -231,6 +295,14 @@ impl PuzzledApplication {
         collection_selection_presenter.register_actions(self);
         collection_selection_presenter.setup();
 
-        main_presenter.setup(&puzzle_selection_presenter, &puzzle_presenter);
+        main_presenter.setup(
+            &collection_selection_presenter,
+            &puzzle_selection_presenter,
+            &puzzle_presenter,
+        );
+
+        if cfg!(debug_assertions) {
+            window.add_css_class("devel");
+        }
     }
 }

@@ -14,8 +14,7 @@ use gtk::prelude::{ActionableExt, BoxExt, FixedExt, ListBoxRowExt, WidgetExt};
 use gtk::{Align, Fixed, Label, ListBox};
 use log::error;
 use puzzle_config::{
-    BoardConfig, ProgressionConfig, PuzzleConfig, PuzzleConfigCollection, PuzzleDifficultyConfig,
-    TileConfig,
+    BoardConfig, ProgressionConfig, PuzzleConfig, PuzzleConfigCollection, TileConfig,
 };
 
 const CELL_SIZE: f64 = 20.0;
@@ -231,11 +230,22 @@ impl PuzzleSelectionPresenter {
         let board_size_pill: InfoPill = builder
             .object("board_size_pill")
             .expect("Missing `board_size_pill` in resource");
+        let cell_count_pill: InfoPill = builder
+            .object("cell_count_pill")
+            .expect("Missing `cell_count_pill` in resource");
         if state != State::Locked || collection.preview().show_board_size() {
             let (width, height) = puzzle.board_config().layout().dim();
             board_size_pill.set_label(format!("{} x {}", width, height));
+            let cell_count = puzzle
+                .board_config()
+                .layout()
+                .iter()
+                .filter(|c| **c)
+                .count();
+            cell_count_pill.set_label(format!("{}", cell_count));
         } else {
             info_box.remove(&board_size_pill);
+            info_box.remove(&cell_count_pill);
         }
 
         let tile_count_pill: InfoPill = builder
@@ -252,13 +262,8 @@ impl PuzzleSelectionPresenter {
             .object("difficulty_pill")
             .expect("Missing `difficulty_pill` in resource");
         if let Some(difficulty) = puzzle.difficulty() {
-            let text = match difficulty {
-                PuzzleDifficultyConfig::Easy => "Easy",
-                PuzzleDifficultyConfig::Medium => "Medium",
-                PuzzleDifficultyConfig::Hard => "Hard",
-                PuzzleDifficultyConfig::Expert => "Expert",
-            };
-            difficulty_pill.set_label(text);
+            let label: String = (*difficulty).into();
+            difficulty_pill.set_label(label);
         } else {
             info_box.remove(&difficulty_pill);
         }
@@ -313,16 +318,14 @@ fn create_board_preview(board: &BoardConfig, preview_box: gtk::Box) {
 
     match board_view {
         Ok(bv) => {
-            bv.parent.set_property("halign", Align::Center);
-            preview_box.append(&bv.parent);
+            bv.set_property("halign", Align::Center);
+            preview_box.append(&bv);
 
             let min_element_width = bv.get_min_element_size();
             let size_per_cell = CELL_SIZE.max(min_element_width as f64);
 
-            bv.parent
-                .set_width_request(size_per_cell as i32 * board.layout().dim().0 as i32);
-            bv.parent
-                .set_height_request(size_per_cell as i32 * board.layout().dim().1 as i32);
+            bv.set_width_request(size_per_cell as i32 * board.layout().dim().0 as i32);
+            bv.set_height_request(size_per_cell as i32 * board.layout().dim().1 as i32);
         }
         Err(e) => {
             error!("Failed to create board preview: {}", e);

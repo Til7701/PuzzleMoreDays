@@ -1,16 +1,17 @@
 use crate::application::PuzzledApplication;
 use crate::config;
-use crate::global::state::get_state_mut;
+use crate::global::puzzle_meta::PuzzleMeta;
+use crate::global::state::{get_state_mut, PuzzleTypeExtension};
 use crate::presenter::main::MainPresenter;
 use crate::puzzles::get_puzzle_collection_store;
-use crate::view::info_pill::InfoPill;
+use crate::view::collection_selection_item::CollectionSelectionItem;
 use crate::window::PuzzledWindow;
 use adw::gio::{Cancellable, File};
 use adw::glib::{Variant, VariantTy};
-use adw::prelude::{ActionMapExtManual, AdwDialogExt, AlertDialogExt, FileExtManual};
-use adw::{gio, AlertDialog, ButtonRow, ResponseAppearance};
-use gtk::prelude::{ActionableExt, BoxExt, WidgetExt};
-use gtk::ListBox;
+use adw::prelude::{ActionMapExtManual, AdwDialogExt, AlertDialogExt, Cast, FileExtManual};
+use adw::{gio, AlertDialog, ResponseAppearance};
+use gtk::prelude::{ListBoxRowExt, WidgetExt};
+use gtk::{FileFilter, ListBox};
 use log::{debug, error};
 use puzzle_config::ReadError::FileReadError;
 use puzzle_config::{PuzzleConfigCollection, ReadError};
@@ -18,37 +19,23 @@ use puzzle_config::{PuzzleConfigCollection, ReadError};
 #[derive(Clone)]
 pub struct CollectionSelectionPresenter {
     window: PuzzledWindow,
-    navigation: MainPresenter,
+    main_presenter: MainPresenter,
     core_collection_list: ListBox,
     community_collection_list: ListBox,
-    load_collection_button_row: ButtonRow,
 }
 
 impl CollectionSelectionPresenter {
-    pub fn new(window: &PuzzledWindow, navigation: MainPresenter) -> Self {
+    pub fn new(window: &PuzzledWindow, main_presenter: MainPresenter) -> Self {
         let page = window.collection_selection_nav_page();
         CollectionSelectionPresenter {
             window: window.clone(),
-            navigation,
+            main_presenter,
             core_collection_list: page.core_collection_list(),
             community_collection_list: page.community_collection_list(),
-            load_collection_button_row: page.load_collection_button_row(),
         }
     }
 
     pub fn register_actions(&self, app: &PuzzledApplication) {
-        let collection_item_activated = gio::ActionEntry::builder("collection_item_activated")
-            .parameter_type(Some(VariantTy::INT32))
-            .activate({
-                let self_clone = self.clone();
-                move |_, _, v: Option<&Variant>| {
-                    if let Some(v) = v {
-                        let collection_id = CollectionId::from(v.clone());
-                        self_clone.activate_collection(collection_id);
-                    }
-                }
-            })
-            .build();
         let load_collection_action = gio::ActionEntry::builder("load_collection")
             .activate({
                 let self_clone = self.clone();
@@ -70,15 +57,12 @@ impl CollectionSelectionPresenter {
                             store.remove_community_collection(&collection_id);
                             drop(store);
                             self_clone.update_community_collections();
+                            self_clone.select_community_or_core_collection();
                         }
                     }
                 })
                 .build();
-        app.add_action_entries([
-            collection_item_activated,
-            load_collection_action,
-            delete_community_collection_action,
-        ]);
+        app.add_action_entries([load_collection_action, delete_community_collection_action]);
     }
 
     pub fn setup(&self) {
@@ -88,31 +72,85 @@ impl CollectionSelectionPresenter {
         self.core_collection_list.connect_row_selected({
             let self_clone = self.clone();
             move |_, row| {
-                if row.is_some() {
+                if let Some(row) = row {
                     self_clone.community_collection_list.unselect_all();
+                    let collection_id = CollectionId::Core(row.index() as usize);
+                    self_clone.activate_collection(collection_id);
                 }
             }
         });
         self.community_collection_list.connect_row_selected({
             let self_clone = self.clone();
             move |_, row| {
-                if row.is_some() {
+                if let Some(row) = row {
                     self_clone.core_collection_list.unselect_all();
+                    let collection_id = CollectionId::Community(row.index() as usize);
+                    self_clone.activate_collection(collection_id);
                 }
             }
         });
+    }
+
+    fn current_collection_id(&self) -> Option<CollectionId> {
+        if let Some(row) = self.core_collection_list.selected_row() {
+            return Some(CollectionId::Core(row.index() as usize));
+        }
+        if let Some(row) = self.community_collection_list.selected_row() {
+            return Some(CollectionId::Community(row.index() as usize));
+        }
+        None
+    }
+
+    pub fn on_solved(&self) {
+        let current_collection_id = self.current_collection_id();
+        if let Some(collection_id) = current_collection_id {
+            match collection_id {
+                CollectionId::Core(index) => {
+                    let row = self.core_collection_list.row_at_index(index as i32);
+                    if let Some(row) = row {
+                        let collection_item: CollectionSelectionItem = row.downcast().unwrap();
+                        collection_item.increment_solved_count();
+                    }
+                }
+                CollectionId::Community(index) => {
+                    let row = self.community_collection_list.row_at_index(index as i32);
+                    if let Some(row) = row {
+                        let collection_item: CollectionSelectionItem = row.downcast().unwrap();
+                        collection_item.increment_solved_count();
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn refresh(&self) {
+        let current_collection_id = self.current_collection_id();
+        self.load_core_collections();
+        self.update_community_collections();
+        if let Some(collection_id) = current_collection_id {
+            match collection_id {
+                CollectionId::Core(index) => {
+                    let row = self.core_collection_list.row_at_index(index as i32);
+                    if let Some(row) = row {
+                        row.activate();
+                    }
+                }
+                CollectionId::Community(index) => {
+                    let row = self.community_collection_list.row_at_index(index as i32);
+                    if let Some(row) = row {
+                        row.activate();
+                    }
+                }
+            }
+        }
     }
 
     fn load_core_collections(&self) {
         self.core_collection_list.remove_all();
 
         let collection_store = get_puzzle_collection_store();
-        for (i, collection) in collection_store
-            .core_puzzle_collections()
-            .iter()
-            .enumerate()
-        {
-            let row = create_collection_row(CollectionId::Core(i), collection, false);
+        for collection in collection_store.core_puzzle_collections().iter() {
+            let row = create_collection_row(collection, true);
             self.core_collection_list.append(&row);
         }
     }
@@ -121,21 +159,17 @@ impl CollectionSelectionPresenter {
         self.community_collection_list.remove_all();
 
         let collection_store = get_puzzle_collection_store();
-        for (i, collection) in collection_store
-            .community_puzzle_collections()
-            .iter()
-            .enumerate()
-        {
-            let row = create_collection_row(CollectionId::Community(i), collection, true);
+        for collection in collection_store.community_puzzle_collections().iter() {
+            let row = create_collection_row(collection, false);
             self.community_collection_list.append(&row);
         }
-
-        self.community_collection_list
-            .append(&self.load_collection_button_row);
     }
 
     fn show_load_collection_dialog(&self) {
-        let dialog = gtk::FileDialog::builder().build();
+        let filter = FileFilter::new();
+        filter.set_name(Some("Puzzled Collection Files"));
+        filter.add_pattern("*.json");
+        let dialog = gtk::FileDialog::builder().default_filter(&filter).build();
         dialog.open(Some(&self.window), None::<&Cancellable>, {
             let self_clone = self.clone();
             move |result| match result {
@@ -222,6 +256,10 @@ impl CollectionSelectionPresenter {
         }
     }
 
+    /// Selects the last community collection in the list.
+    ///
+    /// The callee has to be sure that there is at least one community collection, otherwise this
+    /// will panic.
     fn select_last_community_collection(&self) {
         let last_index = {
             get_puzzle_collection_store()
@@ -231,9 +269,23 @@ impl CollectionSelectionPresenter {
         };
         self.community_collection_list
             .row_at_index(last_index as i32)
-            .as_ref()
             .unwrap()
             .activate();
+    }
+
+    /// Selects the last community collection if there are any, otherwise selects the first core collection.
+    fn select_community_or_core_collection(&self) {
+        let community_count = get_puzzle_collection_store()
+            .community_puzzle_collections()
+            .len();
+        if community_count > 0 {
+            self.select_last_community_collection();
+        } else {
+            self.core_collection_list
+                .row_at_index(0)
+                .unwrap()
+                .activate();
+        }
     }
 
     fn show_load_collection_error(&self, message: String) {
@@ -269,64 +321,50 @@ impl CollectionSelectionPresenter {
                 let mut state = get_state_mut();
                 state.puzzle_collection = Some(c.clone());
                 drop(state);
-                self.navigation.show_puzzle_selection();
+                drop(collection_store);
+                self.main_presenter.show_puzzle_selection();
             }
         };
     }
 }
 
-fn create_collection_row(
-    id: CollectionId,
-    collection: &PuzzleConfigCollection,
-    deletable: bool,
-) -> gtk::ListBoxRow {
-    const RESOURCE_PATH: &str = "/de/til7701/Puzzled/puzzle-collection-item.ui";
-    let builder = gtk::Builder::from_resource(RESOURCE_PATH);
-    let row: gtk::ListBoxRow = builder
-        .object("row")
-        .expect("Missing `puzzle-collection-item.ui` in resource");
-    let info_box: adw::WrapBox = builder
-        .object("info_box")
-        .expect("Missing `info_box` in resource");
+fn create_collection_row(collection: &PuzzleConfigCollection, core: bool) -> gtk::ListBoxRow {
+    let row = CollectionSelectionItem::new();
 
-    let name_label: gtk::Label = builder.object("name").expect("Missing `name` in resource");
-    name_label.set_label(collection.name());
+    row.set_name(collection.name());
 
-    let puzzle_count_pill: InfoPill = builder
-        .object("puzzle_count_pill")
-        .expect("Missing `puzzle_count_pill` in resource");
-    let puzzle_count_text = format!("{}", collection.puzzles().len());
-    puzzle_count_pill.set_label(puzzle_count_text);
+    let puzzle_count = collection.puzzles().len();
+    let puzzle_meta = PuzzleMeta::new();
+    let solved_count = collection
+        .puzzles()
+        .iter()
+        .enumerate()
+        .filter(|(i, p)| {
+            puzzle_meta.is_solved(
+                collection,
+                *i,
+                &Some(PuzzleTypeExtension::default_for_puzzle(p)),
+            )
+        })
+        .count();
+    row.set_solved_counts(solved_count, puzzle_count);
 
-    let author_pill: InfoPill = builder
-        .object("author_pill")
-        .expect("Missing `author_pill` in resource");
-    author_pill.set_label(collection.author());
+    row.set_difficulty(collection.average_difficulty());
 
-    let version_pill: InfoPill = builder
-        .object("version_pill")
-        .expect("Missing `version_pill` in resource");
-    if let Some(version) = collection.version() {
-        version_pill.set_label(version.as_str());
+    if core {
+        row.set_author(None);
     } else {
-        info_box.remove(&version_pill);
+        row.set_author(Some(collection.author()));
     }
 
-    let delete_button: gtk::Button = builder
-        .object("delete_button")
-        .expect("Missing `delete_button` in resource");
-    if deletable {
-        delete_button.set_action_target_value(Some(&collection.id().to_string().into()));
-    } else {
-        let main_box: gtk::Box = builder
-            .object("main_box")
-            .expect("Missing `main_box` in resource");
-        main_box.remove(&delete_button);
+    row.set_version(collection.version());
+
+    row.show_delete_button(!core);
+    if !core {
+        row.set_delete_action_target(Some(&collection.id().to_string().into()));
     }
 
-    row.set_action_target_value(Some(&id.into()));
-
-    row
+    row.upcast()
 }
 
 #[derive(Debug)]
