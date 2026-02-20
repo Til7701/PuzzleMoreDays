@@ -1,6 +1,7 @@
 use crate::application::PuzzledApplication;
 use crate::global::puzzle_meta::PuzzleMeta;
 use crate::global::state::{get_state, get_state_mut};
+use crate::presenter::collection_selection::CollectionSelectionPresenter;
 use crate::presenter::puzzle::PuzzlePresenter;
 use crate::presenter::puzzle_selection::PuzzleSelectionPresenter;
 use crate::solver;
@@ -45,10 +46,12 @@ impl MainPresenter {
 
     pub fn setup(
         &mut self,
+        collection_selection_presenter: &CollectionSelectionPresenter,
         puzzle_selection_presenter: &PuzzleSelectionPresenter,
         puzzle_presenter: &PuzzlePresenter,
     ) {
         *self.presenters.borrow_mut() = Some(Presenters {
+            collection_selection: collection_selection_presenter.clone(),
             puzzle_selection: puzzle_selection_presenter.clone(),
             puzzle_presenter: puzzle_presenter.clone(),
         });
@@ -85,14 +88,15 @@ impl MainPresenter {
     }
 
     pub fn on_solved(&self) {
+        if let Some(presenters) = &self.presenters.borrow().as_ref() {
+            presenters.collection_selection.on_solved();
+        }
         let solved_dialog = SolvedDialog::new();
 
         let state = get_state();
         let has_next = if let Some(collection) = &state.puzzle_collection
             && let Some(puzzle_config) = &state.puzzle_config
         {
-            dbg!(&puzzle_config.index());
-            dbg!(&collection.puzzles().len());
             puzzle_config.index() < collection.puzzles().len() - 1
         } else {
             error!(
@@ -159,6 +163,7 @@ impl MainPresenter {
                 let puzzle_meta = PuzzleMeta::new();
                 puzzle_meta.reset_all();
                 if let Some(presenters) = self_clone.presenters.borrow().as_ref() {
+                    presenters.collection_selection.refresh();
                     presenters.puzzle_selection.show_collection();
                 }
             }
@@ -169,6 +174,7 @@ impl MainPresenter {
 }
 
 struct Presenters {
+    collection_selection: CollectionSelectionPresenter,
     puzzle_selection: PuzzleSelectionPresenter,
     puzzle_presenter: PuzzlePresenter,
 }

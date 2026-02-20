@@ -14,8 +14,7 @@ use gtk::prelude::{ActionableExt, BoxExt, FixedExt, ListBoxRowExt, WidgetExt};
 use gtk::{Align, Fixed, Label, ListBox};
 use log::error;
 use puzzle_config::{
-    BoardConfig, ProgressionConfig, PuzzleConfig, PuzzleConfigCollection, PuzzleDifficultyConfig,
-    TileConfig,
+    BoardConfig, ProgressionConfig, PuzzleConfig, PuzzleConfigCollection, TileConfig,
 };
 
 const CELL_SIZE: f64 = 20.0;
@@ -231,11 +230,22 @@ impl PuzzleSelectionPresenter {
         let board_size_pill: InfoPill = builder
             .object("board_size_pill")
             .expect("Missing `board_size_pill` in resource");
+        let cell_count_pill: InfoPill = builder
+            .object("cell_count_pill")
+            .expect("Missing `cell_count_pill` in resource");
         if state != State::Locked || collection.preview().show_board_size() {
             let (width, height) = puzzle.board_config().layout().dim();
             board_size_pill.set_label(format!("{} x {}", width, height));
+            let cell_count = puzzle
+                .board_config()
+                .layout()
+                .iter()
+                .filter(|c| **c)
+                .count();
+            cell_count_pill.set_label(format!("{}", cell_count));
         } else {
             info_box.remove(&board_size_pill);
+            info_box.remove(&cell_count_pill);
         }
 
         let tile_count_pill: InfoPill = builder
@@ -252,13 +262,8 @@ impl PuzzleSelectionPresenter {
             .object("difficulty_pill")
             .expect("Missing `difficulty_pill` in resource");
         if let Some(difficulty) = puzzle.difficulty() {
-            let text = match difficulty {
-                PuzzleDifficultyConfig::Easy => "Easy",
-                PuzzleDifficultyConfig::Medium => "Medium",
-                PuzzleDifficultyConfig::Hard => "Hard",
-                PuzzleDifficultyConfig::Expert => "Expert",
-            };
-            difficulty_pill.set_label(text);
+            let label: String = (*difficulty).into();
+            difficulty_pill.set_label(label);
         } else {
             info_box.remove(&difficulty_pill);
         }

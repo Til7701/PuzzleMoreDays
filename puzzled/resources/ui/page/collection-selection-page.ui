@@ -18,7 +18,7 @@
                                 <child>
                                     <object class="GtkBox">
                                         <property name="orientation">vertical</property>
-                                        <property name="spacing">12</property>
+                                        <property name="spacing">8</property>
                                         <property name="margin-top">8</property>
                                         <property name="margin-bottom">8</property>
                                         <property name="margin-start">8</property>
@@ -26,8 +26,9 @@
                                         <child>
                                             <object class="GtkLabel">
                                                 <property name="label" translatable="yes">Core Collections</property>
+                                                <property name="halign">start</property>
                                                 <style>
-                                                    <class name="title-3"/>
+                                                    <class name="heading"/>
                                                 </style>
                                             </object>
                                         </child>
@@ -39,25 +40,44 @@
                                             </object>
                                         </child>
                                         <child>
-                                            <object class="GtkLabel">
-                                                <property name="label" translatable="yes">Community Collections</property>
-                                                <style>
-                                                    <class name="title-3"/>
-                                                </style>
+                                            <object class="GtkBox">
+                                                <property name="margin-top">12</property>
+                                                <property name="orientation">horizontal</property>
+                                                <property name="halign">fill</property>
+                                                <property name="spacing">4</property>
+                                                <child>
+                                                    <object class="GtkLabel">
+                                                        <property name="label" translatable="yes">Community Collections</property>
+                                                        <property name="hexpand">True</property>
+                                                        <property name="hexpand-set">True</property>
+                                                        <property name="halign">start</property>
+                                                        <property name="ellipsize">3</property>
+                                                        <style>
+                                                            <class name="heading"/>
+                                                        </style>
+                                                    </object>
+                                                </child>
+                                                <child>
+                                                    <object class="GtkButton">
+                                                        <property name="action-name">app.load_collection</property>
+                                                        <style>
+                                                            <class name="flat"/>
+                                                        </style>
+                                                        <child>
+                                                            <object class="AdwButtonContent">
+                                                                <property name="icon-name">plus-symbolic</property>
+                                                                <property name="label" translatable="yes">Import</property>
+                                                            </object>
+                                                        </child>
+                                                    </object>
+                                                </child>
                                             </object>
                                         </child>
                                         <child>
                                             <object class="GtkListBox" id="community_collection_list">
                                                 <style>
-                                                    <class name="boxed-list"/>
+                                                    <class name="boxed-list-separate"/>
                                                 </style>
-                                                <child>
-                                                    <object class="AdwButtonRow" id="load_collection_button_row">
-                                                        <property name="title" translatable="yes">Load Collection</property>
-                                                        <property name="action-name">app.load_collection</property>
-                                                        <property name="selectable">False</property>
-                                                    </object>
-                                                </child>
                                             </object>
                                         </child>
                                     </object>

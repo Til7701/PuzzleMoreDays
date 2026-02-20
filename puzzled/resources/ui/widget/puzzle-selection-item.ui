@@ -58,6 +58,12 @@
                             </object>
                         </child>
                         <child>
+                            <object class="PuzzledInfoPill" id="cell_count_pill">
+                                <property name="tooltip-text">The number of cells on the board</property>
+                                <property name="icon-name">view-grid-symbolic</property>
+                            </object>
+                        </child>
+                        <child>
                             <object class="PuzzledInfoPill" id="tile_count_pill">
                                 <property name="tooltip-text">The number of tiles in this puzzle</property>
                                 <property name="icon-name">puzzle-piece-symbolic</property>
