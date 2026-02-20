@@ -41,6 +41,7 @@
         <file preprocess="xml-stripblanks" alias="padlock2-symbolic.svg">icons/padlock2-symbolic.svg</file>
         <file preprocess="xml-stripblanks" alias="user-trash-symbolic.svg">icons/user-trash-symbolic.svg</file>
         <file preprocess="xml-stripblanks" alias="lightbulb-symbolic.svg">icons/lightbulb-symbolic.svg</file>
+        <file preprocess="xml-stripblanks" alias="plus-symbolic.svg">icons/plus-symbolic.svg</file>
     </gresource>
     <!-- @formatter:on -->
 </gresources>

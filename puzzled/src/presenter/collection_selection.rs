@@ -8,7 +8,7 @@ use crate::window::PuzzledWindow;
 use adw::gio::{Cancellable, File};
 use adw::glib::{Variant, VariantTy};
 use adw::prelude::{ActionMapExtManual, AdwDialogExt, AlertDialogExt, FileExtManual};
-use adw::{gio, AlertDialog, ButtonRow, ResponseAppearance};
+use adw::{gio, AlertDialog, ResponseAppearance};
 use gtk::prelude::{ActionableExt, BoxExt, WidgetExt};
 use gtk::ListBox;
 use log::{debug, error};
@@ -21,7 +21,6 @@ pub struct CollectionSelectionPresenter {
     navigation: MainPresenter,
     core_collection_list: ListBox,
     community_collection_list: ListBox,
-    load_collection_button_row: ButtonRow,
 }
 
 impl CollectionSelectionPresenter {
@@ -32,7 +31,6 @@ impl CollectionSelectionPresenter {
             navigation,
             core_collection_list: page.core_collection_list(),
             community_collection_list: page.community_collection_list(),
-            load_collection_button_row: page.load_collection_button_row(),
         }
     }
 
@@ -129,9 +127,6 @@ impl CollectionSelectionPresenter {
             let row = create_collection_row(CollectionId::Community(i), collection, true);
             self.community_collection_list.append(&row);
         }
-
-        self.community_collection_list
-            .append(&self.load_collection_button_row);
     }
 
     fn show_load_collection_dialog(&self) {
