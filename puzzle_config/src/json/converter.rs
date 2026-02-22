@@ -49,11 +49,10 @@ impl Convertable<PuzzleConfigCollection> for PuzzleCollection {
 
             let mut tiles = Vec::new();
             let mut index_offset = 0;
-            for tile_width_index in puzzle.tiles.into_iter().enumerate() {
-                let tile_index_with_offset =
-                    (index_offset + tile_width_index.0, tile_width_index.1);
+            for tile_with_index in puzzle.tiles.into_iter().enumerate() {
+                let tile_index_with_offset = (index_offset + tile_with_index.0, tile_with_index.1);
                 let converted_tile = tile_index_with_offset.convert(&predefined, custom)?;
-                index_offset += converted_tile.len();
+                index_offset += converted_tile.len() - 1;
                 tiles.extend(converted_tile);
             }
 

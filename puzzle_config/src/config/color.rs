@@ -1,37 +1,37 @@
 const COLORS: [ColorConfig; 35] = [
     ColorConfig::from_rgb_hex(0x1c71d8), // Blue 4
     ColorConfig::from_rgb_hex(0x2ec27e), // Green 4
-    ColorConfig::from_rgb_hex(0xe66100), // Orange 4
-    ColorConfig::from_rgb_hex(0x813d9c), // Purple 4
     ColorConfig::from_rgb_hex(0xc01c28), // Red 4
+    ColorConfig::from_rgb_hex(0x813d9c), // Purple 4
+    ColorConfig::from_rgb_hex(0xe66100), // Orange 4
     ColorConfig::from_rgb_hex(0x865e3c), // Brown 4
     ColorConfig::from_rgb_hex(0xf5c211), // Yellow 4
     ColorConfig::from_rgb_hex(0x62a0ea), // Blue 2
     ColorConfig::from_rgb_hex(0x57e389), // Green 2
-    ColorConfig::from_rgb_hex(0xffa348), // Orange 2
-    ColorConfig::from_rgb_hex(0xc061cb), // Purple 2
     ColorConfig::from_rgb_hex(0xed333b), // Red 2
+    ColorConfig::from_rgb_hex(0xc061cb), // Purple 2
+    ColorConfig::from_rgb_hex(0xffa348), // Orange 2
     ColorConfig::from_rgb_hex(0xb5835a), // Brown 2
     ColorConfig::from_rgb_hex(0xf8e45c), // Yellow 2
     ColorConfig::from_rgb_hex(0x1a5fb4), // Blue 5
     ColorConfig::from_rgb_hex(0x26a269), // Green 5
-    ColorConfig::from_rgb_hex(0xc64600), // Orange 5
-    ColorConfig::from_rgb_hex(0x613583), // Purple 5
     ColorConfig::from_rgb_hex(0xa51d2d), // Red 5
+    ColorConfig::from_rgb_hex(0x613583), // Purple 5
+    ColorConfig::from_rgb_hex(0xc64600), // Orange 5
     ColorConfig::from_rgb_hex(0x63452c), // Brown 5
     ColorConfig::from_rgb_hex(0xe5a50a), // Yellow 5
     ColorConfig::from_rgb_hex(0x99c1f1), // Blue 1
     ColorConfig::from_rgb_hex(0x8ff0a4), // Green 1
-    ColorConfig::from_rgb_hex(0xffbe6f), // Orange 1
-    ColorConfig::from_rgb_hex(0xdc8add), // Purple 1
     ColorConfig::from_rgb_hex(0xf66151), // Red 1
+    ColorConfig::from_rgb_hex(0xdc8add), // Purple 1
+    ColorConfig::from_rgb_hex(0xffbe6f), // Orange 1
     ColorConfig::from_rgb_hex(0xcdab8f), // Brown 1
     ColorConfig::from_rgb_hex(0xf9f06b), // Yellow 1
     ColorConfig::from_rgb_hex(0x3584e4), // Blue 3
     ColorConfig::from_rgb_hex(0x33d17a), // Green 3
-    ColorConfig::from_rgb_hex(0xff7800), // Orange 3
-    ColorConfig::from_rgb_hex(0x9141ac), // Purple 3
     ColorConfig::from_rgb_hex(0xe01b24), // Red 3
+    ColorConfig::from_rgb_hex(0x9141ac), // Purple 3
+    ColorConfig::from_rgb_hex(0xff7800), // Orange 3
     ColorConfig::from_rgb_hex(0x986a44), // Brown 3
     ColorConfig::from_rgb_hex(0xf6d32d), // Yellow 3
 ];
